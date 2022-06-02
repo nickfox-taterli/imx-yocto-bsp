@@ -1,0 +1,158 @@
+version: 2
+accept_configuration:
+  condition: and
+  conditions:
+    - condition: property
+      property: host.compiler
+      equals_value: Yocto
+    - condition: property
+      property: target.arch
+      in_values: [TARGET1, TARGET2, TARGET3, TARGET4]
+
+machine_type:
+  Build:
+    cores: 16
+
+# Target build matrix:
+#
+#           [target1]       [target2]   [target3]       [target4]
+# [machine] qemuarm64       qemux86     qemuarm         qemux86-64
+# [yocto]   master          honister    hardknott       dunfell
+# [X11]     no              no          yes             yes
+# [mingw]   no              yes         no              no
+#
+
+target1: &target1
+  type: Group
+  instructions:
+    - type: EnvironmentVariable
+      variableName: MACHINE
+      variableValue: qemuarm64
+    - type: EnvironmentVariable
+      variableName: YOCTO_BRANCH
+      variableValue: master
+    - type: EnvironmentVariable
+      variableName: DISABLE_X11
+      variableValue: true
+  enable_if:
+      condition: property
+      property: target.arch
+      equals_value: TARGET1
+target2: &target2
+  type: Group
+  instructions:
+    - type: EnvironmentVariable
+      variableName: MACHINE
+      variableValue: qemux86
+    - type: EnvironmentVariable
+      variableName: YOCTO_BRANCH
+      variableValue: honister
+    - type: EnvironmentVariable
+      variableName: DISABLE_X11
+      variableValue: true
+    - type: EnvironmentVariable
+      variableName: MINGW
+      variableValue: true
+  enable_if:
+      condition: property
+      property: target.arch
+      equals_value: TARGET2
+target3: &target3
+  type: Group
+  instructions:
+    - type: EnvironmentVariable
+      variableName: MACHINE
+      variableValue: qemuarm
+    - type: EnvironmentVariable
+      variableName: YOCTO_BRANCH
+      variableValue: hardknott
+  enable_if:
+      condition: property
+      property: target.arch
+      equals_value: TARGET3
+target4: &target4
+  type: Group
+  instructions:
+    - type: EnvironmentVariable
+      variableName: MACHINE
+      variableValue: qemux86-64
+    - type: EnvironmentVariable
+      variableName: YOCTO_BRANCH
+      variableValue: dunfell
+  enable_if:
+      condition: property
+      property: target.arch
+      equals_value: TARGET4
+
+instructions:
+  Build:
+  - *target1
+  - *target2
+  - *target3
+  - *target4
+  - type: EnvironmentVariable
+    variableName: DL_DIR
+    variableValue: "/mnt/yocto-cache/downloads"
+  - type: EnvironmentVariable
+    variableName: SOURCE_DIR
+    variableValue: "{{.SourceDir}}"
+  - type: SetBuildDirectory
+    directory: "{{.AgentWorkingDir}}/build"
+  - type: MakeDirectory
+    directory: "{{.BuildDir}}"
+  - type: ChangeDirectory
+    directory: "{{.BuildDir}}"
+  - type: WriteFile
+    fileContents: |
+      #!/bin/bash -xe
+      sudo apt install zstd
+
+      # make hostname unique for NFS
+      sudo hostname $(hostname -s)-$(date +%s%N)
+
+      sudo mkdir -p /mnt/yocto-cache
+      sudo mount yocto-cache.intra.qt.io:/srv/yocto-cache /mnt/yocto-cache
+
+      git clone git://git.yoctoproject.org/poky --reference /mnt/yocto-cache/mirror/poky.git -b ${YOCTO_BRANCH}
+      git clone git://git.openembedded.org/meta-openembedded --reference /mnt/yocto-cache/mirror/meta-openembedded.git -b ${YOCTO_BRANCH}
+      git clone git://git.yoctoproject.org/meta-mingw --reference /mnt/yocto-cache/mirror/meta-mingw.git -b ${YOCTO_BRANCH}
+      git clone git://git.openembedded.org/meta-python2 --reference /mnt/yocto-cache/mirror/meta-python2.git -b ${YOCTO_BRANCH}
+
+      source ./poky/oe-init-build-env
+      export BB_ENV_EXTRAWHITE="$BB_ENV_EXTRAWHITE SSTATE_DIR DL_DIR"
+      export DL_DIR=/mnt/yocto-cache/downloads
+      export BB_GENERATE_MIRROR_TARBALLS=1
+      export BB_NUMBER_THREADS=8
+      DISTRO_CODENAME=$(sed -n -e "s/DISTRO_CODENAME.*\"\(.*\)\"/\1/p" ../poky/meta-*/conf/distro/poky.conf)
+      export SSTATE_DIR=/mnt/yocto-cache/sstate-caches/${DISTRO_CODENAME}-meta-qt6
+      bitbake-layers add-layer ../meta-openembedded/meta-oe
+      bitbake-layers add-layer ../meta-openembedded/meta-python
+      bitbake-layers add-layer ../meta-openembedded/meta-multimedia
+      bitbake-layers add-layer ../meta-mingw
+      bitbake-layers add-layer ../meta-python2
+      bitbake-layers add-layer ${SOURCE_DIR}
+
+      if [ -n "${DISABLE_X11}" ] ; then
+        echo "DISTRO_FEATURES:remove = \"x11\"" >> conf/local.conf
+      fi
+      if [ -n "${MINGW}" ]; then
+        export SDKMACHINE=x86_64-mingw32
+      fi
+
+      echo "require ${SOURCE_DIR}/coin/test-configs.inc" >> conf/local.conf
+      echo "include ${SOURCE_DIR}/coin/test-${DISTRO_CODENAME}.inc" >> conf/local.conf
+
+      # build toolchain which should include all supported recipes
+      bitbake meta-toolchain-qt6 nativesdk-packagegroup-qt6-toolchain-host packagegroup-qt6-modules
+    filename: "{{.BuildDir}}/start-build"
+    fileMode: 420
+  - type: ExecuteCommand
+    command: ["bash", "-xe", "{{.BuildDir}}/start-build"]
+    maxTimeInSeconds: 43200
+    maxTimeBetweenOutput: 7200
+    userMessageOnFailure: "Build failed."
+  - type: ExecuteCommand
+    command: ["sudo", "umount", "/mnt/yocto-cache"]
+    userMessageOnFailure: "Unmounting cache failed."
+
+  Test: []
