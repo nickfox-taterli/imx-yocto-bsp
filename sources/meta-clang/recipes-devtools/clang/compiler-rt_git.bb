@@ -22,8 +22,13 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 DEPENDS += "ninja-native libgcc"
 DEPENDS:append:class-target = " clang-cross-${TARGET_ARCH} virtual/${MLPREFIX}libc gcc-runtime"
-DEPENDS:append:class-nativesdk = " clang-native"
+DEPENDS:append:class-nativesdk = " clang-native clang-crosssdk-${SDK_ARCH} nativesdk-gcc-runtime"
 DEPENDS:append:class-native = " clang-native"
+
+# Trick clang.bbclass into not creating circular dependencies
+UNWINDLIB:class-nativesdk = "--unwindlib=libgcc"
+COMPILER_RT:class-nativesdk:toolchain-clang:runtime-llvm = "-rtlib=libgcc --unwindlib=libgcc"
+LIBCPLUSPLUS:class-nativesdk:toolchain-clang:runtime-llvm = "-stdlib=libstdc++"
 
 CXXFLAGS += "-stdlib=libstdc++"
 LDFLAGS += "-unwindlib=libgcc -rtlib=libgcc -stdlib=libstdc++"
@@ -50,7 +55,8 @@ OECMAKE_TARGET_COMPILE = "compiler-rt"
 OECMAKE_TARGET_INSTALL = "install-compiler-rt install-compiler-rt-headers"
 OECMAKE_SOURCEPATH = "${S}/llvm"
 EXTRA_OECMAKE += "-DCOMPILER_RT_STANDALONE_BUILD=OFF \
-                  -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=${HOST_ARCH}${HF}${HOST_VENDOR}-${HOST_OS} \
+                  -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+                  -DCMAKE_C_COMPILER_TARGET=${HOST_ARCH}${HF}${HOST_VENDOR}-${HOST_OS} \
                   -DCOMPILER_RT_BUILD_XRAY=OFF \
                   -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
                   -DCOMPILER_RT_BUILD_MEMPROF=OFF \

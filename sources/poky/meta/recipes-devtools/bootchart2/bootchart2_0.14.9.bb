@@ -85,7 +85,7 @@ SUMMARY = "Booting sequence and CPU,I/O usage monitor"
 DESCRIPTION = "Monitors where the system spends its time at start, creating a graph of all processes, disk utilization, and wait time."
 AUTHOR = "Wonhong Kwon <wonhong.kwon@lge.com>"
 HOMEPAGE = "https://github.com/mmeeks/bootchart"
-LICENSE = "GPL-3.0"
+LICENSE = "GPL-3.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=44ac4678311254db62edf8fd39cb8124"
 
 UPSTREAM_CHECK_GITTAGREGEX = "(?P<pver>\d+\.\d+(\.\d+)*)"
@@ -94,6 +94,7 @@ SRC_URI = "git://github.com/xrmx/bootchart.git;branch=master;protocol=https \
            file://bootchartd_stop.sh \
            file://0001-collector-Allocate-space-on-heap-for-chunks.patch \
            file://0001-bootchart2-support-usrmerge.patch \
+           file://0001-bootchartd.in-make-sure-only-one-bootchartd-process.patch \
           "
 
 S = "${WORKDIR}/git"

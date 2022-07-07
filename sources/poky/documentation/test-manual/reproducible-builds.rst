@@ -33,28 +33,16 @@ need to rebuild to add a security fix. If this happens, only the components that
 have been modified should change at the binary level. This would lead to much
 easier and clearer bounds on where validation is needed.
 
-This also gives an additional benefit to the project builds themselves, our hash
-equivalence for :ref:`Shared State <overview-manual/concepts:Shared State>`
-object reuse works much more effectively when the binary output remains the
-same.
+This also gives an additional benefit to the project builds themselves, our
+:ref:`overview-manual/concepts:Hash Equivalence` for
+:ref:`overview-manual/concepts:Shared State` object reuse works much more
+effectively when the binary output remains the same.
 
 .. note::
 
    We strongly advise you to make sure your project builds reproducibly
    before finalizing your production images. It would be too late if you
    only address this issue when the first updates are required.
-
-================
-How to enable it
-================
-
-You can enable build reproducibility by inheriting the
-:ref:`reproducible-build <ref-classes-reproducible-build>` class
-in the configuration for your distribution.
-
-This is what the Poky reference distribution does::
-
-   INHERIT += "reproducible_build"
 
 ===================
 How we implement it

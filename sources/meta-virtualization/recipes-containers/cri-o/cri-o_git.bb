@@ -14,9 +14,9 @@ At a high level, we expect the scope of cri-o to be restricted to the following 
  - Resource isolation as required by the CRI \
  "
 
-SRCREV_cri-o = "1d447191ee73ead59f344f354edac5d64f377e15"
+SRCREV_cri-o = "1607c6ec2eddc927ef736db5525761e49df13e24"
 SRC_URI = "\
-	git://github.com/kubernetes-sigs/cri-o.git;branch=main;name=cri-o;protocol=https \
+	git://github.com/kubernetes-sigs/cri-o.git;branch=release-1.23;name=cri-o;protocol=https \
 	file://0001-Makefile-force-symlinks.patch \
         file://crio.conf \
 	"
@@ -27,7 +27,7 @@ LIC_FILES_CHKSUM = "file://src/import/LICENSE;md5=e3fc50a88d0a364313df4b21ef20c2
 
 GO_IMPORT = "import"
 
-PV = "1.22.0+git${SRCREV_cri-o}"
+PV = "1.23.1+git${SRCREV_cri-o}"
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES ?= "seccomp"
@@ -46,7 +46,7 @@ RDEPENDS:${PN} = " \
     libdevmapper \
     "
 
-PNBLACKLIST[cri-o] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'security', bb.utils.contains('BBFILE_COLLECTIONS', 'selinux', '', 'Depends on libselinux from meta-selinux which is not included', d), 'Depends on libseccomp from meta-security which is not included', d)}"
+SKIP_RECIPE[cri-o] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'security', bb.utils.contains('BBFILE_COLLECTIONS', 'selinux', '', 'Depends on libselinux from meta-selinux which is not included', d), 'Depends on libseccomp from meta-security which is not included', d)}"
 
 PACKAGES =+ "${PN}-config"
 

@@ -4,15 +4,15 @@
 
 SUMMARY = "Nand boot write source"
 SECTION = "base"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=393a5ca445f6965873eca0259a17f833"
 
 PV = "5.5+git${SRCPV}"
-SRC_URI = "git://github.com/NXPmicro/imx-kobs.git;protocol=https \
+SRC_URI = "git://github.com/NXPmicro/imx-kobs.git;protocol=https;branch=master \
 "
 SRCREV = "269fdffcf97238684de9f28977a73677282e061f"
 S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-COMPATIBLE_MACHINE = "(imx|use-mainline-bsp)"
+COMPATIBLE_MACHINE = "(imx-generic-bsp)"

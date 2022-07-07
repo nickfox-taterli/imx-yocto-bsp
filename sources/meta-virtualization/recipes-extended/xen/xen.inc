@@ -1,5 +1,5 @@
 HOMEPAGE = "http://xen.org"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 SECTION = "console/tools"
 
 inherit autotools-brokensep pkgconfig
@@ -135,8 +135,8 @@ EXTRA_OECONF += " \
     ${@bb.utils.contains('XEN_TARGET_ARCH', 'x86_64', '--enable-pvshim', '--disable-pvshim', d)} \
     "
 
-EXTRA_OEMAKE += "STDVGA_ROM=${STAGING_DIR_HOST}/usr/share/firmware/vgabios-0.7a.bin"
-EXTRA_OEMAKE += "CIRRUSVGA_ROM=${STAGING_DIR_HOST}/usr/share/firmware/vgabios-0.7a.cirrus.bin"
+EXTRA_OEMAKE += "STDVGA_ROM=${STAGING_DIR_HOST}/usr/share/firmware/vgabios-0.8a.bin"
+EXTRA_OEMAKE += "CIRRUSVGA_ROM=${STAGING_DIR_HOST}/usr/share/firmware/vgabios-0.8a.cirrus.bin"
 EXTRA_OEMAKE += "SEABIOS_ROM=${STAGING_DIR_HOST}/usr/share/firmware/bios.bin"
 EXTRA_OEMAKE += "ETHERBOOT_ROMS=${STAGING_DIR_HOST}/usr/share/firmware/rtl8139.rom"
 
@@ -191,12 +191,6 @@ do_post_patch() {
         sed '/^EFI_LDFLAGS = /{a EFI_LDFLAGS += --no-insert-timestamp
 }' -i "${S}/xen/arch/x86/Makefile"
     fi
-}
-
-do_post_patch:append:arm()  {
-    # The hypervisor binary must not be built with the hard floating point ABI.
-    echo "CC := \$(filter-out ${TUNE_CCARGS},\$(CC))" >> ${S}/xen/arch/arm/Rules.mk
-    echo "CPP := \$(filter-out ${TUNE_CCARGS},\$(CPP))" >> ${S}/xen/arch/arm/Rules.mk
 }
 
 addtask post_patch after do_patch before do_configure

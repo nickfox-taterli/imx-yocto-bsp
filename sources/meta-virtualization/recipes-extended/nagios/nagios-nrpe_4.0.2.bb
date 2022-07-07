@@ -4,7 +4,7 @@ DESCRIPTION = "Nagios Remote Plugin Executor"
 HOMEPAGE = "http://www.nagios.com"
 SECTION = "console/network"
 PRIORITY = "optional"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 
 LIC_FILES_CHKSUM = "file://src/nrpe.c;beginline=1;endline=35;md5=0dadd78599abbc737af81432702e9161"
 
@@ -26,7 +26,7 @@ S = "${WORKDIR}/${SRCNAME}-${PV}"
 
 inherit autotools-brokensep update-rc.d systemd update-alternatives
 
-PNBLACKLIST[nagios-nrpe] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'webserver', '', 'Depends on nagios-core which depends on apache2 from meta-webserver which is not included', d)}"
+SKIP_RECIPE[nagios-nrpe] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'webserver', '', 'Depends on nagios-core which depends on apache2 from meta-webserver which is not included', d)}"
 
 # IP address of server which proxy should connect to
 MONITORING_PROXY_SERVER_IP ??= "192.168.7.2"

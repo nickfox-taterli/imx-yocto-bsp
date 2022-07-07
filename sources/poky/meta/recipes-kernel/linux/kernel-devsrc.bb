@@ -5,7 +5,7 @@ development or external module builds"
 
 SECTION = "kernel"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 
 inherit linux-kernel-base
 
@@ -48,7 +48,7 @@ do_install() {
     mkdir -p ${D}/usr/src
     (
 	cd ${D}/usr/src
-	lnr ${D}${KERNEL_BUILD_ROOT}${KERNEL_VERSION}/source kernel
+	ln -rs ${D}${KERNEL_BUILD_ROOT}${KERNEL_VERSION}/source kernel
     )
 
     # for on target purposes, we unify build and source
@@ -72,7 +72,9 @@ do_install() {
     (
 	cd ${B}
 
-	cp Module.symvers $kerneldir/build
+	if [ -s Module.symvers ]; then
+	    cp Module.symvers $kerneldir/build
+	fi
 	cp System.map* $kerneldir/build
 	if [ -s Module.markers ]; then
 	    cp Module.markers $kerneldir/build
@@ -110,7 +112,9 @@ do_install() {
 	fi
 
 	if [ "${ARCH}" = "arm64" -o "${ARCH}" = "riscv" ]; then
-	    cp -a --parents arch/${ARCH}/kernel/vdso/vdso.lds $kerneldir/build/
+            if [ -e arch/${ARCH}/kernel/vdso/vdso.lds ]; then
+	        cp -a --parents arch/${ARCH}/kernel/vdso/vdso.lds $kerneldir/build/
+            fi
 	fi
 	if [ "${ARCH}" = "powerpc" ]; then
 	    cp -a --parents arch/powerpc/kernel/vdso32/vdso32.lds $kerneldir/build 2>/dev/null || :
@@ -188,7 +192,9 @@ do_install() {
 	if [ "${ARCH}" = "riscv" ]; then
             cp -a --parents arch/riscv/kernel/vdso/*gettimeofday.* $kerneldir/build/
             cp -a --parents arch/riscv/kernel/vdso/note.S $kerneldir/build/
-            cp -a --parents arch/riscv/kernel/vdso/gen_vdso_offsets.sh $kerneldir/build/
+            if [ -e arch/riscv/kernel/vdso/gen_vdso_offsets.sh ]; then
+                    cp -a --parents arch/riscv/kernel/vdso/gen_vdso_offsets.sh $kerneldir/build/
+            fi
 	    cp -a --parents arch/riscv/kernel/vdso/* $kerneldir/build/ 2>/dev/null || :
 	fi
 

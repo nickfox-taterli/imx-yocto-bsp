@@ -55,9 +55,8 @@ Reproducible builds now enabled by default
 
 In order to avoid unnecessary differences in output files (aiding binary
 reproducibility), the Poky distribution configuration
-(``DISTRO = "poky"``) now inherits the
-:ref:`reproducible-build <ref-classes-reproducible-build>` class
-by default.
+(``DISTRO = "poky"``) now inherits the ``reproducible_build`` class by
+default.
 
 .. _migration-3.1-ptest-feature-impact:
 
@@ -126,7 +125,7 @@ renamed to ``features_check``; the ``distro_features_check`` class still
 exists but generates a warning and redirects to the new class. In
 preparation for a future removal of the old class it is recommended that
 you update recipes currently inheriting ``distro_features_check`` to
-inherit ``features_check`` instead.
+inherit :ref:`features_check <ref-classes-features_check>` instead.
 
 .. _migration-3.1-removed-classes:
 
@@ -242,7 +241,7 @@ circumstances:
    does not inherit the new ``mime-xdg`` class
 
 -  A recipe installs ``.xml`` files into ``${datadir}/mime/packages``
-   but does not inherit the ``mime`` class
+   but does not inherit the :ref:`mime <ref-classes-mime>` class
 
 .. _migration-3.1-x86-live-wic:
 
@@ -261,7 +260,7 @@ Miscellaneous changes
 ---------------------
 
 -  The undocumented ``SRC_DISTRIBUTE_LICENSES`` variable has now been
-   removed in favour of a new :term:`AVAILABLE_LICENSES` variable which is
+   removed in favour of a new ``AVAILABLE_LICENSES`` variable which is
    dynamically set based upon license files found in
    ``${COMMON_LICENSE_DIR}`` and ``${LICENSE_PATH}``.
 

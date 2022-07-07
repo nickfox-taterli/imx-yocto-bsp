@@ -5,7 +5,7 @@ zipl (s390) boot loaders. It is primarily designed to be used from scripts which
 new kernels and need to find information about the current boot environment. \
 "
 HOMEPAGE = "https://github.com/rhboot/grubby"
-LICENSE = "GPLv2+"
+LICENSE = "GPL-2.0-or-later"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=892f569a555ba9c07a568a7c0c4fa63a"
 
@@ -37,5 +37,9 @@ do_install_ptest() {
 
 RDEPENDS:${PN} += "bash"
 RDEPENDS:${PN}-ptest = "util-linux-getopt bash"
+
+inherit update-alternatives
+ALTERNATIVE_${PN} = "installkernel"
+ALTERNATIVE_LINK_NAME[installkernel] = "${sbindir}/installkernel"
 
 COMPATIBLE_HOST = '(x86_64.*|i.86.*)-(linux|freebsd.*)'

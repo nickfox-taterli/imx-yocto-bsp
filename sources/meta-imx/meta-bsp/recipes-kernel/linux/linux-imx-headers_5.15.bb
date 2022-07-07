@@ -4,7 +4,7 @@
 SUMMARY = "Installs i.MX-specific kernel headers"
 DESCRIPTION = "Installs i.MX-specific kernel headers to userspace. \
 New headers are installed in ${includedir}/imx."
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 
 SRCBRANCH = "lf-5.15.y"
@@ -13,7 +13,7 @@ KERNEL_SRC ?= "git://source.codeaurora.org/external/imx/linux-imx.git;protocol=h
 KBRANCH = "${SRCBRANCH}"
 SRC_URI = "${KERNEL_SRC}"
 
-SRCREV = "c1084c2773fc1005ed140db625399d5334d94a28"
+SRCREV = "fa6c3168595c02bd9d5366fcc28c9e7304947a3d"
 
 S = "${WORKDIR}/git"
 
@@ -39,11 +39,9 @@ IMX_UAPI_HEADERS = " \
 
 do_install() {
     # We install all headers inside of B so we can copy only the
-    # whitelisted ones, and there is no risk of a new header to be
+    # required ones, and there is no risk of a new header to be
     # installed by mistake.
     oe_runmake headers_install INSTALL_HDR_PATH=${B}${exec_prefix}
-
-    # Install whitelisted headers only
     for h in ${IMX_UAPI_HEADERS}; do
         install -D -m 0644 ${B}${includedir}/linux/$h \
 	                   ${D}${includedir}/imx/linux/$h

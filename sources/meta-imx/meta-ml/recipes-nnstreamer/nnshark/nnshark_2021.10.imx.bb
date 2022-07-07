@@ -1,6 +1,6 @@
 SUMMARY = "A GStreamer NNstreamer pipelines real-time profiling plugin"
 HOMEPAGE = "https://github.com/nnstreamer/nnshark"
-LICENSE = "GPLv2 & LGPLv2.1"
+LICENSE = "GPL-2.0-only & LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e1caa368743492879002ad032445fa97 \
                     file://COPYING.LESSER;md5=66c40c88533cd228b5b85936709801c8"
 DEPENDS = "\
@@ -13,10 +13,9 @@ DEPENDS = "\
 
 NNSHARK_SRC ?= "git://source.codeaurora.org/external/imx/nnshark.git;protocol=https"
 SRCBRANCH ?= "2021.10.imx"
+SRC_URI = "${NNSHARK_SRC};branch=${SRCBRANCH}"
 
 SRCREV = "c815749eac865bfb7175c61ed13093e6837aea6f"
-
-SRC_URI = "${NNSHARK_SRC};branch=${SRCBRANCH}"
 
 S = "${WORKDIR}/git"
 

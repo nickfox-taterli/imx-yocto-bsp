@@ -2,7 +2,7 @@ require conf/distro/poky.conf
 
 DISTRO = "fslc-base"
 DISTRO_NAME = "FSLC Distro Base"
-DISTRO_VERSION = "3.4-snapshot-${DATE}"
+DISTRO_VERSION = "4.0"
 
 SDK_VENDOR = "-fslcsdk"
 
@@ -42,7 +42,7 @@ PACKAGECONFIG:remove:pn-xserver-xorg:armv5 = "dri"
 
 # Log information on images and packages
 INHERIT += "buildhistory"
-BUILDHISTORY_COMMIT = "1"
+BUILDHISTORY_COMMIT ?= "1"
 
 # Use bluez5 as default.
 DISTRO_FEATURES:append = " bluez5"

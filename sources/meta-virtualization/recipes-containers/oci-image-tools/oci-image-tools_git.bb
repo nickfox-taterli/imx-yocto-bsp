@@ -1,6 +1,6 @@
 HOMEPAGE = "https://github.com/opencontainers/image-tools"
 SUMMARY = "A collection of tools for working with the OCI image format specification"
-LICENSE = "Apache-2"
+LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://src/import/LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 
 DEPENDS = "\
@@ -16,8 +16,8 @@ SRC_URI = "git://github.com/opencontainers/image-tools.git;branch=master;protoco
            file://0001-config-make-Config.User-mapping-errors-a-warning.patch \
            file://0001-tool-respect-GO-and-GOBUILDFLAGS-when-building.patch"
 
-SRCREV = "93db3b16e6738bf9b8bee47d86ac93be5340838b"
-PV = "0.2.0-dev+git${SRCPV}"
+SRCREV = "11f9988298305d36f64248a6ee55318e60bf170b"
+PV = "1.0.0-rc3+git${SRCPV}"
 GO_IMPORT = "import"
 
 inherit goarch

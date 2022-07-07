@@ -61,10 +61,9 @@ member Chris Larson split the project into two distinct pieces:
 
 Today, BitBake is the primary basis of the
 `OpenEmbedded <https://www.openembedded.org/>`__ project, which is being
-used to build and maintain Linux distributions such as the `Angstrom
-Distribution <http://www.angstrom-distribution.org/>`__, and which is
-also being used as the build tool for Linux projects such as the `Yocto
-Project <https://www.yoctoproject.org>`__.
+used to build and maintain Linux distributions such as the `Poky
+Reference Distribution <https://www.yoctoproject.org/software-item/poky/>`__,
+developed under the umbrella of the `Yocto Project <https://www.yoctoproject.org>`__.
 
 Prior to BitBake, no other build tool adequately met the needs of an
 aspiring embedded Linux distribution. All of the build systems used by
@@ -537,7 +536,7 @@ current working directory:
 -  ``pn-buildlist``: Shows a simple list of targets that are to be
    built.
 
-To stop depending on common depends, use the "-I" depend option and
+To stop depending on common depends, use the ``-I`` depend option and
 BitBake omits them from the graph. Leaving this information out can
 produce more readable graphs. This way, you can remove from the graph
 :term:`DEPENDS` from inherited classes such as ``base.bbclass``.

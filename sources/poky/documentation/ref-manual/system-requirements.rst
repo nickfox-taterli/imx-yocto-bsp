@@ -41,23 +41,23 @@ distributions:
 
 -  Ubuntu 20.04 (LTS)
 
--  Fedora 33
-
 -  Fedora 34
+
+-  Fedora 35
 
 -  CentOS 7.x
 
 -  CentOS 8.x
 
--  Debian GNU/Linux 8.x (Jessie)
+-  AlmaLinux 8.5
 
 -  Debian GNU/Linux 9.x (Stretch)
 
 -  Debian GNU/Linux 10.x (Buster)
 
--  openSUSE Leap 15.1
+-  Debian GNU/Linux 11.x (Bullseye)
 
--  openSUSE Leap 15.2
+-  OpenSUSE Leap 15.3
 
 .. note::
 
@@ -320,7 +320,7 @@ If you would prefer not to use the ``install-buildtools`` script, you can instea
 download and run a pre-built buildtools installer yourself with the following
 steps:
 
-1. Locate and download the ``*.sh`` at &YOCTO_RELEASE_DL_URL;/buildtools/
+1. Locate and download the ``*.sh`` at :yocto_dl:`/releases/yocto/yocto-&DISTRO;/buildtools/`
 
 2. Execute the installation script. Here is an example for the
    traditional installer::

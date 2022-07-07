@@ -1,23 +1,24 @@
-LICENSE = "GFDL-1.3 & BSD & ( GPL-3.0 & The-Qt-Company-GPL-Exception-1.0 ) & ( GPL-2.0+ | LGPL-3.0 ) | The-Qt-Company-Commercial"
+LICENSE = "GFDL-1.3 & BSD-3-Clause & ( GPL-3.0-only & The-Qt-Company-GPL-Exception-1.0 ) & ( GPL-2.0-or-later | LGPL-3.0-only ) | The-Qt-Company-Commercial"
 LIC_FILES_CHKSUM = " \
     file://LICENSE.LGPL3;md5=e6a600fd5e1d9cbde2d983680233ad02 \
     file://LICENSE.GPL2;md5=b234ee4d69f5fce4486a80fdaf4a4263 \
     file://LICENSE.GPL3;md5=d32239bcb673463ab874e80d47fae504 \
     file://LICENSE.GPL3-EXCEPT;md5=763d8c535a234d9a3fb682c7ecb6c073 \
-    file://LICENSE.FDL;md5=6d9f2a9af4c8b8c3c769f6cc1b6aaf7e \
-    file://LICENSE.QT-LICENSE-AGREEMENT;md5=f383149f021dd9099dd49628e3916808 \
+    file://LICENSE.FDL;md5=a22d0be1ce2284b67950a4d1673dd1b0 \
+    file://LICENSE.QT-LICENSE-AGREEMENT;md5=38de3b110ade3b6ee2f0b6a95ab16f1a \
 "
 
-inherit qt6-cmake pkgconfig
+inherit qt6-cmake
 
 include recipes-qt/qt6/qt6-git.inc
 include recipes-qt/qt6/qt6.inc
+include recipes-qt/qt6/conan.inc
 
 SRC_URI += "\
     file://0001-Add-linux-oe-g-platform.patch \
     file://0002-qlibraryinfo-allow-to-set-qt.conf-from-the-outside-u.patch \
     file://0003-tests-disable-failing-tests.patch \
-    file://0001-catch_p_p.h-don-t-use-MINSIGSTKSZ.patch \
+    file://0004-Do-not-use-QT_TOOLCHAIN_RELOCATABLE-paths-in-qt.tool.patch \
 "
 
 DEPENDS += "\
@@ -27,8 +28,8 @@ DEPENDS += "\
 DEPENDS:remove:class-native = "qtbase-native"
 RDEPENDS_${PN}:remove:class-native = "libssl-native"
 
-PACKAGECONFIG:class-native ?= "gui widgets png dbus no-opengl"
-PACKAGECONFIG:class-nativesdk ?= "gui widgets png dbus no-opengl"
+PACKAGECONFIG:class-native ?= "gui widgets png dbus no-opengl openssl"
+PACKAGECONFIG:class-nativesdk ?= "${PACKAGECONFIG:class-native}"
 PACKAGECONFIG ?= "\
     ${PACKAGECONFIG_DEFAULT} \
     ${PACKAGECONFIG_GRAPHICS} \
@@ -42,7 +43,7 @@ PACKAGECONFIG ?= "\
 PACKAGECONFIG_GRAPHICS ?= "\
     ${@bb.utils.filter('DISTRO_FEATURES', 'vulkan', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', \
-        bb.utils.contains('DISTRO_FEATURES', 'x11', 'gl', 'gles2', d), 'no-opengl', d)} \
+        bb.utils.contains('DISTRO_FEATURES', 'x11', 'gl', 'gles2 eglfs', d), 'no-opengl linuxfb', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'directfb', 'directfb', '', d)} \
 "
 PACKAGECONFIG_X11 ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xcb xkbcommon glib', '', d)}"
@@ -55,6 +56,9 @@ PACKAGECONFIG_DEFAULT ?= "accessibility dbus udev gui widgets icu openssl  \
     ${@bb.utils.contains('SELECTED_OPTIMIZATION', '-Os', 'optimize-size ltcg', '', d)} \
     ${@bb.utils.contains('BBFILE_COLLECTIONS', 'openembedded-layer', 'zstd', '', d)} \
 "
+
+PACKAGECONFIG:remove:mingw32 = "openssl"
+
 # Build type: Debug, Release, MinSizeRel, RelWithDebInfo
 BUILD_TYPE ?= "Release"
 # OpenSSL linking mode: runtime, linked
@@ -87,10 +91,12 @@ PACKAGECONFIG[fontconfig] = "-DFEATURE_fontconfig=ON,-DFEATURE_fontconfig=OFF,fo
 PACKAGECONFIG[gbm] = "-DFEATURE_gbm=ON,-DFEATURE_gbm=OFF,virtual/libgbm"
 PACKAGECONFIG[gl] = "-DFEATURE_opengl_desktop=ON,-DFEATURE_opengl_desktop=OFF,virtual/libgl"
 PACKAGECONFIG[gles2] = "-DFEATURE_opengles2=ON,-DFEATURE_opengles2=OFF,virtual/libgles2 virtual/egl"
+PACKAGECONFIG[eglfs] = "-DFEATURE_eglfs=ON,-DFEATURE_eglfs=OFF"
 PACKAGECONFIG[harfbuzz] = "-DFEATURE_harfbuzz=ON,-DFEATURE_harfbuzz=OFF,harfbuzz"
 PACKAGECONFIG[jpeg] = "-DFEATURE_jpeg=ON,-DFEATURE_jpeg=OFF,jpeg"
 PACKAGECONFIG[kms] = "-DFEATURE_kms=ON,-DFEATURE_kms=OFF,drm virtual/egl"
 PACKAGECONFIG[libinput] = "-DFEATURE_libinput=ON,-DFEATURE_libinput=OFF,libinput"
+PACKAGECONFIG[linuxfb] = "-DFEATURE_linuxfb=ON,-DFEATURE_linuxfb=OFF"
 PACKAGECONFIG[mtdev] = "-DFEATURE_mtdev=ON,-DFEATURE_mtdev=OFF,mtdev"
 PACKAGECONFIG[no-opengl] = "-DINPUT_opengl=no"
 PACKAGECONFIG[png] = "-DFEATURE_png=ON,-DFEATURE_png=OFF,libpng"
@@ -112,7 +118,7 @@ PACKAGECONFIG[openssl] = "-DFEATURE_openssl_${OPENSSL_LINKING_MODE}=ON,-DFEATURE
 # sqldrivers
 PACKAGECONFIG[sql-mysql] = "-DFEATURE_sql_mysql=ON,-DFEATURE_sql_mysql=OFF,mysql5"
 PACKAGECONFIG[sql-odbc] = "-DFEATURE_sql_odbc=ON,-DFEATURE_sql_odbc=OFF,unixodbc"
-PACKAGECONFIG[sql-psql] = "-DFEATURE_sql_psql=ON,-DFEATURE_sql-psql=OFF,postgresql"
+PACKAGECONFIG[sql-psql] = "-DFEATURE_sql_psql=ON,-DFEATURE_sql_psql=OFF,postgresql"
 PACKAGECONFIG[sql-sqlite] = "-DFEATURE_system_sqlite=ON,-DFEATURE_sql_sqlite=OFF,sqlite3"
 
 
@@ -126,6 +132,10 @@ EXTRA_OECMAKE:append:class-target = "\
     -DQT_QPA_DEFAULT_PLATFORM=${QT_QPA_DEFAULT_PLATFORM} \
     -DQT_AVOID_CMAKE_ARCHIVING_API=ON \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ld-is-gold', '-DFEATURE_use_gold_linker=ON', '-DFEATURE_use_bfd_linker=ON', d)} \
+"
+
+EXTRA_OECMAKE:append:mingw32 = "\
+    -DQT_GENERATE_WRAPPER_SCRIPTS_FOR_ALL_HOSTS=ON \
 "
 
 SYSROOT_DIRS += "${QT6_INSTALL_MKSPECSDIR}"
@@ -148,6 +158,16 @@ do_install:append:class-nativesdk() {
 set(QT_HOST_PATH "\$ENV{OECORE_NATIVE_SYSROOT}/usr" CACHE PATH "")
 set(QT_BUILD_TOOLS_WHEN_CROSSCOMPILING "TRUE" CACHE BOOL "")
 EOF
+
+    RELPATH="${@os.path.relpath(d.getVar('bindir'), d.getVar('QT6_INSTALL_BINDIR'))}"
+    sed -i ${D}${QT6_INSTALL_BINDIR}/* \
+        -e "s|cmake_path=${RECIPE_SYSROOT_NATIVE}.*cmake|cmake_path=%script_dir_path%/$RELPATH/cmake.exe|" \
+        -e "s|${RECIPE_SYSROOT_NATIVE}.*cmake|\$script_dir_path/$RELPATH/cmake|"
+
+    RELPATH=${@os.path.relpath(d.getVar('prefix') + '/share/cmake/Qt6Toolchain.cmake', d.getVar('QT6_INSTALL_LIBDIR') + '/cmake/Qt6')}
+    sed -i ${D}${QT6_INSTALL_LIBDIR}/cmake/Qt6/qt.toolchain.cmake \
+        -e 's|${RECIPE_SYSROOT_NATIVE}|\${CMAKE_CURRENT_LIST_DIR}/../../../..|' \
+        -e "s|/.*/toolchain.cmake|\${CMAKE_CURRENT_LIST_DIR}/$RELPATH|"
 }
 
 INSANE_SKIP:${PN}-ptest += "arch"

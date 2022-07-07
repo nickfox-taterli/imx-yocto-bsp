@@ -1,4 +1,4 @@
-MACHINEOVERRIDES =. "imx-boot-container:mx8:mx8m:mx8mp:"
+MACHINEOVERRIDES =. "imx-boot-container:mx8mp:"
 
 require conf/machine/include/imx-base.inc
 require conf/machine/include/arm/armv8a/tune-cortexa53.inc
@@ -36,7 +36,6 @@ UBOOT_CONFIG[mfgtool] = "${UBOOT_CONFIG_BASENAME}_defconfig"
 SPL_BINARY = "spl/u-boot-spl.bin"
 
 ATF_PLATFORM = "imx8mp"
-ATF_LOAD_ADDR = "0x970000"
 
 # Extra firmware package name, that is required to build boot container for fslc bsp
 IMX_EXTRA_FIRMWARE = "firmware-imx-8m"

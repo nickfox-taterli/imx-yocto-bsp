@@ -33,16 +33,9 @@ do_resolve_and_populate_binaries[depends] += " \
     ${@bb.utils.contains('MACHINE_FEATURES', 'optee', 'optee-os:do_deploy', '', d)} \
 "
 
-# Append make flags to include ATF load address
-EXTRA_OEMAKE += "ATF_LOAD_ADDR=${ATF_LOAD_ADDR}"
-
 # Define an additional task that collects binary output from dependent packages
 # and deploys them into the U-Boot build folder
 do_resolve_and_populate_binaries() {
-    if [ ! -n "${ATF_LOAD_ADDR}" ]; then
-        bberror "ATF_LOAD_ADDR is undefined, result binary would be unusable!"
-    fi
-
     if [ -n "${UBOOT_CONFIG}" ]; then
         for config in ${UBOOT_MACHINE}; do
             i=$(expr $i + 1);
@@ -85,7 +78,6 @@ do_deploy:append() {
                 j=$(expr $j + 1);
                 if [ $j -eq $i ]
                 then
-                    install -m 0644 ${B}/${config}/u-boot.itb  ${DEPLOYDIR}/u-boot.itb-${MACHINE}-${type}
                     install -m 0644 ${B}/${config}/flash.bin  ${DEPLOYDIR}/flash.bin-${MACHINE}-${type}
                     # When there's more than one word in UBOOT_CONFIG,
                     # this will overwrite the links created in
@@ -94,8 +86,8 @@ do_deploy:append() {
                     # word in UBOOT_CONFIG. This is also how all other
                     # artifacts handled by oe-core's u-boot.inc are
                     # treated.
-                    ln -sf u-boot.itb-${MACHINE}-${type} u-boot.itb
                     ln -sf flash.bin-${MACHINE}-${type} flash.bin
+                    ln -sf flash.bin-${MACHINE}-${type} imx-boot
                 fi
             done
             unset  j

@@ -3,14 +3,14 @@ Dependencies
 This layer depends on:
 
 URI: git://git.openembedded.org/openembedded-core
-branch: honister
+branch: kirkstone
 
 URI: git://git.openembedded.org/meta-openembedded
-branch: honister
+branch: kirkstone
 
-Send pull requests to openembedded-devel@lists.openembedded.org with '[meta-gnome][honister]' in the subject'
+Send pull requests to openembedded-devel@lists.openembedded.org with '[meta-gnome][kirkstone]' in the subject'
 
 When sending single patches, please using something like:
-git send-email -M -1 --to openembedded-devel@lists.openembedded.org --subject-prefix='meta-gnome][honister][PATCH'
+git send-email -M -1 --to openembedded-devel@lists.openembedded.org --subject-prefix='meta-gnome][kirkstone][PATCH'
 
-Stable Branch maintainer: Armin Kuster <akuster808@gmail.com>
+Layer maintainer: Armin Kuster <akuster808@gmail.com>

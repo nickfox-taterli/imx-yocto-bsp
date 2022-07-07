@@ -1,6 +1,6 @@
 DESCRIPTION = "lxc aims to use these new functionnalities to provide an userspace container object"
 SECTION = "console/utils"
-LICENSE = "LGPLv2.1 & GPLv2"
+LICENSE = "LGPL-2.1-only & GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://LICENSE.LGPL2.1;md5=4fbd65380cdd255951079008b364516c \
                     file://LICENSE.GPL2;md5=751419260aa954499f7abaabaa882bbe \
 "
@@ -50,8 +50,8 @@ SRC_URI = "git://github.com/lxc/lxc.git;branch=stable-4.0;protocol=https \
 	file://lxc-net \
 	"
 
-SRCREV = "48e079bf318982ae7d5684feeb7358870fa71c10"
-PV = "4.0.11+git${SRCPV}"
+SRCREV = "5ba5725cb4a210c25707beeca64fde5f561d1c71"
+PV = "4.0.12+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 

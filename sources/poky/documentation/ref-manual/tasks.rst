@@ -80,7 +80,7 @@ task runs with the current working directory set to
 Recipes implementing this task should inherit the
 :ref:`deploy <ref-classes-deploy>` class and should write the output
 to ``${``\ :term:`DEPLOYDIR`\ ``}``, which is not to be
-confused with ``${DEPLOY_DIR}``. The ``deploy`` class sets up
+confused with ``${DEPLOY_DIR}``. The :ref:`deploy <ref-classes-deploy>` class sets up
 ``do_deploy`` as a shared state (sstate) task that can be accelerated
 through sstate use. The sstate mechanism takes care of copying the
 output from ``${DEPLOYDIR}`` to ``${DEPLOY_DIR_IMAGE}``.
@@ -102,7 +102,7 @@ Adding ``do_deploy`` after other tasks works the same way.
 .. note::
 
    You do not need to add ``before do_build`` to the ``addtask`` command
-   (though it is harmless), because the ``base`` class contains the following::
+   (though it is harmless), because the :ref:`base <ref-classes-base>` class contains the following::
 
            do_build[recrdeptask] += "do_deploy"
 
@@ -187,9 +187,9 @@ that either directly or indirectly depend on the installed files (e.g.
 
    -  The ``install`` utility. This utility is the preferred method.
 
-   -  The ``cp`` command with the "--no-preserve=ownership" option.
+   -  The ``cp`` command with the ``--no-preserve=ownership`` option.
 
-   -  The ``tar`` command with the "--no-same-owner" option. See the
+   -  The ``tar`` command with the ``--no-same-owner`` option. See the
       ``bin_package.bbclass`` file in the ``meta/classes`` directory of
       the :term:`Source Directory` for an example.
 
@@ -415,7 +415,7 @@ dependencies specified by :term:`DEPENDS`). See the
 
 Removes work files after the OpenEmbedded build system has finished with
 them. You can learn more by looking at the
-":ref:`rm_work.bbclass <ref-classes-rm-work>`" section.
+":ref:`ref-classes-rm-work`" section.
 
 .. _ref-tasks-unpack:
 
@@ -514,17 +514,17 @@ scratch is guaranteed.
       $ bitbake -f -c do_cleansstate target
 
 
-.. _ref-tasks-devpyshell:
+.. _ref-tasks-pydevshell:
 
-``do_devpyshell``
+``do_pydevshell``
 -----------------
 
 Starts a shell in which an interactive Python interpreter allows you to
 interact with the BitBake build environment. From within this shell, you
 can directly examine and set bits from the data store and execute
-functions as if within the BitBake environment. See the ":ref:`dev-manual/common-tasks:using a development python shell`" section in
+functions as if within the BitBake environment. See the ":ref:`dev-manual/common-tasks:using a python development shell`" section in
 the Yocto Project Development Tasks Manual for more information about
-using ``devpyshell``.
+using ``pydevshell``.
 
 .. _ref-tasks-devshell:
 

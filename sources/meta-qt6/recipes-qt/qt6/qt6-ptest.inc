@@ -3,6 +3,9 @@ SRC_URI += "file://run-ptest"
 
 inherit ptest
 
+QT_PTEST_ENABLED ?= "${@bb.utils.contains('DISTRO_FEATURES', 'ptest', '1', '0', d)}"
+PTEST_ENABLED = "${QT_PTEST_ENABLED}"
+
 fakeroot do_install_ptest() {
     if [ -n "${OE_QMAKE_QMAKE}" ]; then
         # qmake project
@@ -44,7 +47,9 @@ fakeroot do_install_ptest() {
             test=${f##${D}${PTEST_PATH}/}
             testdir=$(dirname ${test})
             # tests may depend on files from sources
-            cp -r ${S}/${testdir}/* ${D}${PTEST_PATH}/${testdir}
+            if [ -e ${S}/${testdir} ]; then
+                cp -r ${S}/${testdir}/* ${D}${PTEST_PATH}/${testdir}
+            fi
             echo ${test} >> ${D}${PTEST_PATH}/tst_list
         done
     fi

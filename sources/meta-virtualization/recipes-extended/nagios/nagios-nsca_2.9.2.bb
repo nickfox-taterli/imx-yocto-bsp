@@ -4,7 +4,7 @@ DESCRIPTION = "Nagios Service Check Acceptor"
 HOMEPAGE = "http://exchange.nagios.org"
 SECTION = "console/network"
 PRIORITY = "optional"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 
 LIC_FILES_CHKSUM = "file://src/nsca.c;beginline=1;endline=16;md5=dd7a195cc7d8a3ebcfabd65360d0cab4"
 
@@ -22,7 +22,7 @@ S = "${WORKDIR}/${SRCNAME}-${PV}"
 
 inherit update-rc.d autotools-brokensep systemd dos2unix
 
-PNBLACKLIST[nagios-nsca] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'webserver', '', 'Rdepends on nagios-base provided by nagios-core which depends on apache2 from meta-webserver which is not included', d)}"
+SKIP_RECIPE[nagios-nsca] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'webserver', '', 'Rdepends on nagios-base provided by nagios-core which depends on apache2 from meta-webserver which is not included', d)}"
 
 DEPENDS = "libmcrypt"
 

@@ -11,6 +11,7 @@ RDEPENDS:${PN} += " \
     ${@bb.utils.contains('ENABLE_QMLCOMPILER', '1', 'qmlcompilerplus', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'qt3d', '', d)} \
     qt5compat \
+    qtapplicationmanager \
     qtcharts \
     qtcoap \
     qtconnectivity \
@@ -18,11 +19,13 @@ RDEPENDS:${PN} += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'qtdatavis3d', '', d)} \
     qtdeviceutilities \
     qtimageformats \
+    ${@bb.utils.contains('BBFILE_COLLECTIONS', 'meta-python', 'qtinterfaceframework', '', d)} \
     qtlottie \
     qtmqtt \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'qtmultimedia', '', d)} \
+    qtmultimedia \
     qtnetworkauth \
     qtopcua \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'webengine', 'qtpdf', '', d)} \
     qtpositioning \
     qtquick3d \
     qtquickdesigner-components \
@@ -33,7 +36,6 @@ RDEPENDS:${PN} += " \
     qtserialbus \
     qtserialport \
     qtshadertools \
-    qtspeech \
     qtsvg \
     qttranslations \
     qtvirtualkeyboard \

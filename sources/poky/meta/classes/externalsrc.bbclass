@@ -90,15 +90,16 @@ python () {
                 # Since configure will likely touch ${S}, ensure only we lock so one task has access at a time
                 d.appendVarFlag(task, "lockfiles", " ${S}/singletask.lock")
 
-            # We do not want our source to be wiped out, ever (kernel.bbclass does this for do_clean)
-            cleandirs = oe.recipeutils.split_var_value(d.getVarFlag(task, 'cleandirs', False) or '')
-            setvalue = False
-            for cleandir in cleandirs[:]:
-                if oe.path.is_path_parent(externalsrc, d.expand(cleandir)):
-                    cleandirs.remove(cleandir)
-                    setvalue = True
-            if setvalue:
-                d.setVarFlag(task, 'cleandirs', ' '.join(cleandirs))
+            for funcname in [task, "base_" + task, "kernel_" + task]:
+                # We do not want our source to be wiped out, ever (kernel.bbclass does this for do_clean)
+                cleandirs = oe.recipeutils.split_var_value(d.getVarFlag(funcname, 'cleandirs', False) or '')
+                setvalue = False
+                for cleandir in cleandirs[:]:
+                    if oe.path.is_path_parent(externalsrc, d.expand(cleandir)):
+                        cleandirs.remove(cleandir)
+                        setvalue = True
+                if setvalue:
+                    d.setVarFlag(funcname, 'cleandirs', ' '.join(cleandirs))
 
         fetch_tasks = ['do_fetch', 'do_unpack']
         # If we deltask do_patch, there's no dependency to ensure do_unpack gets run, so add one
@@ -109,8 +110,8 @@ python () {
             if local_srcuri and task in fetch_tasks:
                 continue
             bb.build.deltask(task, d)
-            if bb.data.inherits_class('reproducible_build', d) and task == 'do_unpack':
-                # The reproducible_build's create_source_date_epoch_stamp function must
+            if task == 'do_unpack':
+                # The reproducible build create_source_date_epoch_stamp function must
                 # be run after the source is available and before the
                 # do_deploy_source_date_epoch task.  In the normal case, it's attached
                 # to do_unpack as a postfuncs, but since we removed do_unpack (above)

@@ -17,9 +17,9 @@ DEPENDS = " \
     ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)} \
 "
 
-SRCREV = "6e8de00bb224f9931d7402648f0177e7357ed079"
+SRCREV = "717edd7b844dcd66468f5d991991d87e9fc14c12"
 SRC_URI = " \
-    git://github.com/containers/libpod.git;branch=v3.4;protocol=https \
+    git://github.com/containers/libpod.git;branch=v4.0;protocol=https \
 "
 
 LICENSE = "Apache-2.0"
@@ -29,7 +29,7 @@ GO_IMPORT = "import"
 
 S = "${WORKDIR}/git"
 
-PV = "3.4.0+git${SRCPV}"
+PV = "4.0.1+git${SRCPV}"
 
 PACKAGES =+ "${PN}-contrib"
 
@@ -92,12 +92,6 @@ do_install() {
 	if ${@bb.utils.contains('PACKAGECONFIG', 'docker', 'true', 'false', d)}; then
 		oe_runmake install.docker DESTDIR="${D}"
 	fi
-	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
-		install -d ${D}${systemd_unitdir}/system
-		install -m 644 ${S}/src/import/contrib/systemd/system/podman.service ${D}/${systemd_unitdir}/system
-		install -m 644 ${S}/src/import/contrib/systemd/system/podman.socket ${D}/${systemd_unitdir}/system
-		rm -f ${D}/${systemd_unitdir}/system/docker.service.rpm
-	fi
 }
 
 FILES:${PN} += " \
@@ -109,6 +103,10 @@ FILES:${PN} += " \
 
 SYSTEMD_SERVICE:${PN} = "podman.service podman.socket"
 
-RDEPENDS:${PN} += "conmon virtual-runc iptables cni skopeo"
+# The other option for this is "busybox", since meta-virt ensures
+# that busybox is configured with nsenter
+VIRTUAL-RUNTIME_base-utils-nsenter ?= "util-linux-nsenter"
+
+RDEPENDS:${PN} += "conmon virtual-runc iptables cni skopeo ${VIRTUAL-RUNTIME_base-utils-nsenter}"
 RRECOMMENDS:${PN} += "slirp4netns kernel-module-xt-masquerade kernel-module-xt-comment"
 RCONFLICTS:${PN} = "${@bb.utils.contains('PACKAGECONFIG', 'docker', 'docker', '', d)}"

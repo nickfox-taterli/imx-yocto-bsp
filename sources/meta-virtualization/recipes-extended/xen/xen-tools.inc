@@ -94,7 +94,7 @@ RDEPENDS:${PN}-scripts-network = "\
     ${PN}-volatiles \
     "
 
-RSUGGESTS:${PN}-scripts-network = "\
+RRECOMMENDS:${PN}-scripts-network = "\
     ifupdown \
     "
 
@@ -653,16 +653,16 @@ FILES:${PN}-xm = "\
     "
 
 FILES:${PN}-xencommons += "\
+    ${nonarch_libdir}/modules-load.d/xen.conf \
     ${sysconfdir}/default/xencommons \
-    ${sysconfdir}/init.d/xencommons \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', '${sysconfdir}/init.d/xencommons', d)} \
     ${sysconfdir}/xen/scripts/launch-xenstore \
-    ${systemd_unitdir}/modules-load.d/xen.conf \
     ${systemd_unitdir}/system/proc-xen.mount \
-    ${systemd_unitdir}/system/xen-qemu-dom0-disk-backend.service \
-    ${systemd_unitdir}/system/xenconsoled.service \
-    ${systemd_unitdir}/system/xen-init-dom0.service \
-    ${systemd_unitdir}/system/xenstored.service \
-    ${systemd_unitdir}/system/var-lib-xenstored.mount \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_unitdir}/system/xen-qemu-dom0-disk-backend.service', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_unitdir}/system/xenconsoled.service', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_unitdir}/system/xen-init-dom0.service', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_unitdir}/system/xenstored.service', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${systemd_unitdir}/system/var-lib-xenstored.mount', '', d)} \
     "
 
 FILES:${PN}-xend += " \
@@ -716,7 +716,8 @@ ALLOW_EMPTY:${PN}-xen-vmtrace = "1"
 INSANE_SKIP:${PN} = "already-stripped"
 
 # configure init.d scripts
-INITSCRIPT_PACKAGES = "${PN}-xend ${PN}-xencommons ${PN}-xen-watchdog ${PN}-xendomains ${PN}-devd"
+INITSCRIPT_PACKAGES = "${PN}-xend ${PN}-xen-watchdog ${PN}-xendomains ${PN}-devd"
+INITSCRIPT_PACKAGES += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${PN}-xencommons}', '', d)}"
 INITSCRIPT_NAME:${PN}-xencommons = "xencommons"
 INITSCRIPT_PARAMS:${PN}-xencommons = "defaults 80"
 INITSCRIPT_NAME:${PN}-xen-watchdog = "xen-watchdog"
@@ -744,7 +745,6 @@ SYSTEMD_SERVICE:${PN}-xendomains = "xendomains.service"
 
 EXTRA_OECONF += " \
     --with-systemd=${systemd_unitdir}/system \
-    --with-systemd-modules-load=${systemd_unitdir}/modules-load.d \
     --with-initddir=${INIT_D_DIR} \
     --with-sysconfig-leaf-dir=default \
     --with-system-qemu=${bindir}/qemu-system-i386 \
@@ -808,12 +808,23 @@ do_install() {
         done
     fi
 
-    # fixup default path to qemu-system-i386
-    sed -i 's#\(test -z "$QEMU_XEN" && QEMU_XEN=\).*$#\1"/usr/bin/qemu-system-i386"#' ${D}/etc/init.d/xencommons
-
     if [ -e ${D}${systemd_unitdir}/system/xen-qemu-dom0-disk-backend.service ]; then
         sed -i 's#ExecStart=.*qemu-system-i386\(.*\)$#ExecStart=/usr/bin/qemu-system-i386\1#' \
             ${D}${systemd_unitdir}/system/xen-qemu-dom0-disk-backend.service
+    fi
+
+    if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
+        rm -f ${D}/${sysconfdir}/init.d/xencommons
+    else
+        # fixup default path to qemu-system-i386
+        sed -i 's#\(test -z "$QEMU_XEN" && QEMU_XEN=\).*$#\1"/usr/bin/qemu-system-i386"#' ${D}/etc/init.d/xencommons
+
+        # remove the uncondiontally installed systemd service files
+        rm -f ${D}/${systemd_unitdir}/system/xen-qemu-dom0-disk-backend.service
+        rm -f ${D}/${systemd_unitdir}/system/xenconsoled.service
+        rm -f ${D}/${systemd_unitdir}/system/xen-init-dom0.service
+        rm -f ${D}/${systemd_unitdir}/system/xenstored.service
+        rm -f ${D}/${systemd_unitdir}/system/var-lib-xenstored.mount
     fi
 }
 

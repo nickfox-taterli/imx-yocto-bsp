@@ -1,15 +1,15 @@
-# Copyright 2021-2022 NXP
+# Copyright 2022 NXP
 DESCRIPTION = "Tensorflow-lite-extras package"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
 DEPENDS = "opencv tensorflow-lite flatbuffers python3 python3-pip python3-numpy"
 
-EFFICIENTDET_SRC ?= "git://github.com/NXP/efficientdet-imx.git;protocol=https"
-SRCBRANCH = "lf-5.15.5_1.0.0"
+EFFICIENTDET_SRC ?= "git://source.codeaurora.org/external/imx/efficientdet-imx.git;protocol=https"
+SRCBRANCH = "lf-5.15.32_2.0.0"
 
 SRC_URI = "${EFFICIENTDET_SRC};branch=${SRCBRANCH}"
-SRCREV = "f7bac49223a051b27558d9fa1d3e4ccf977d2028" 
+SRCREV = "d0cf2775b079c76051e9a04170050ebe81fb18cd"
 
 S = "${WORKDIR}/git"
 
@@ -30,4 +30,4 @@ do_install() {
     install -m 0755 ${S}/DEMO_README.md ${D}${bindir}/${BPN}
 }
 
-COMPATIBLE_MACHINE = "(mx8qm|mx8mp)"
+COMPATIBLE_MACHINE = "(mx8qm-nxp-bsp|mx8mp-nxp-bsp)"

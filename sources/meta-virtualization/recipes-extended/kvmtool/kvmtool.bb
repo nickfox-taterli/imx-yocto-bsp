@@ -1,7 +1,7 @@
 SUMMARY = "Native Linux KVM tool"
 DESCRIPTION = "kvmtool is a lightweight tool for hosting KVM guests."
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=fcb02dc552a041dee27e4b85c7396067"
 
 DEPENDS = "dtc libaio zlib"
@@ -16,7 +16,7 @@ SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/will/kvmtool.git;branch
            file://0003-kvmtool-Werror-disabled.patch \
            "
 
-SRCREV = "415f92c33a227c02f6719d4594af6fad10f07abf"
+SRCREV = "faae833a746f1c59f64fb05e9c08e62b5b0002eb"
 PV = "5.10.0+git${SRCPV}"
 
 S = "${WORKDIR}/git"

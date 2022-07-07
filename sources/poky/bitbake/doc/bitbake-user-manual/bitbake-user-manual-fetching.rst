@@ -84,18 +84,18 @@ fetcher does know how to use HTTP as a transport.
 Here are some examples that show commonly used mirror definitions::
 
    PREMIRRORS ?= "\
-      bzr://.*/.\*  http://somemirror.org/sources/ \\n \
-      cvs://.*/.\*  http://somemirror.org/sources/ \\n \
-      git://.*/.\*  http://somemirror.org/sources/ \\n \
-      hg://.*/.\*   http://somemirror.org/sources/ \\n \
-      osc://.*/.\*  http://somemirror.org/sources/ \\n \
-      p4://.*/.\*   http://somemirror.org/sources/ \\n \
-     svn://.*/.\*   http://somemirror.org/sources/ \\n"
+      bzr://.*/.\*  http://somemirror.org/sources/ \
+      cvs://.*/.\*  http://somemirror.org/sources/ \
+      git://.*/.\*  http://somemirror.org/sources/ \
+      hg://.*/.\*   http://somemirror.org/sources/ \
+      osc://.*/.\*  http://somemirror.org/sources/ \
+      p4://.*/.\*   http://somemirror.org/sources/ \
+     svn://.*/.\*   http://somemirror.org/sources/"
 
    MIRRORS =+ "\
-      ftp://.*/.\*   http://somemirror.org/sources/ \\n \
-      http://.*/.\*  http://somemirror.org/sources/ \\n \
-      https://.*/.\* http://somemirror.org/sources/ \\n"
+      ftp://.*/.\*   http://somemirror.org/sources/ \
+      http://.*/.\*  http://somemirror.org/sources/ \
+      https://.*/.\* http://somemirror.org/sources/"
 
 It is useful to note that BitBake
 supports cross-URLs. It is possible to mirror a Git repository on an
@@ -167,6 +167,9 @@ govern the behavior of the unpack stage:
 -  *dos:* Applies to ``.zip`` and ``.jar`` files and specifies whether
    to use DOS line ending conversion on text files.
 
+-  *striplevel:* Strip specified number of leading components (levels)
+   from file names on extraction
+
 -  *subdir:* Unpacks the specific URL to the specified subdirectory
    within the root directory.
 
@@ -225,6 +228,11 @@ the downloaded file to be specified. Specifying the name of the
 downloaded file is useful for avoiding collisions in
 :term:`DL_DIR` when dealing with multiple files that
 have the same name.
+
+If a username and password are specified in the ``SRC_URI``, a Basic
+Authorization header will be added to each request, including across redirects.
+To instead limit the Authorization header to the first request, add
+"redirectauth=0" to the list of parameters.
 
 Some example URLs are as follows::
 
@@ -388,6 +396,19 @@ This fetcher supports the following parameters:
    protocol is "file". You can also use "http", "https", "ssh" and
    "rsync".
 
+   .. note::
+
+     When ``protocol`` is "ssh", the URL expected in :term:`SRC_URI` differs
+     from the one that is typically passed to ``git clone`` command and provided
+     by the Git server to fetch from. For example, the URL returned by GitLab
+     server for ``mesa`` when cloning over SSH is
+     ``git@gitlab.freedesktop.org:mesa/mesa.git``, however the expected URL in
+     :term:`SRC_URI` is the following::
+
+       SRC_URI = "git://git@gitlab.freedesktop.org/mesa/mesa.git;branch=main;protocol=ssh;..."
+
+     Note the ``:`` character changed for a ``/`` before the path to the project.
+
 -  *"nocheckout":* Tells the fetcher to not checkout source code when
    unpacking when set to "1". Set this option for the URL where there is
    a custom routine to checkout code. The default is "0".
@@ -411,9 +432,9 @@ This fetcher supports the following parameters:
    raw Git metadata is provided. This parameter implies the "nocheckout"
    parameter as well.
 
--  *"branch":* The branch(es) of the Git tree to clone. If unset, this
-   is assumed to be "master". The number of branch parameters much match
-   the number of name parameters.
+-  *"branch":* The branch(es) of the Git tree to clone. Unless
+   "nobranch" is set to "1", this is a mandatory parameter. The number of
+   branch parameters must match the number of name parameters.
 
 -  *"rev":* The revision to use for the checkout. The default is
    "master".
@@ -436,8 +457,9 @@ This fetcher supports the following parameters:
 
 Here are some example URLs::
 
-   SRC_URI = "git://git.oe.handhelds.org/git/vip.git;tag=version-1"
-   SRC_URI = "git://git.oe.handhelds.org/git/vip.git;protocol=http"
+   SRC_URI = "git://github.com/fronteed/icheck.git;protocol=https;branch=${PV};tag=${PV}"
+   SRC_URI = "git://github.com/asciidoc/asciidoc-py;protocol=https;branch=main"
+   SRC_URI = "git://git@gitlab.freedesktop.org/mesa/mesa.git;branch=main;protocol=ssh;..."
 
 .. note::
 
@@ -665,6 +687,22 @@ Here is an example URL::
    SRC_URI = "az://<azure-storage-account>.blob.core.windows.net/<foo_container>/<bar_file>"
 
 It can also be used when setting mirrors definitions using the :term:`PREMIRRORS` variable.
+
+Crate Fetcher (``crate://``)
+----------------------------
+
+This submodule fetches code for
+`Rust language "crates" <https://doc.rust-lang.org/reference/glossary.html?highlight=crate#crate>`__
+corresponding to Rust libraries and programs to compile. Such crates are typically shared
+on https://crates.io/ but this fetcher supports other crate registries too.
+
+The format for the :term:`SRC_URI` setting must be::
+
+   SRC_URI = "crate://REGISTRY/NAME/VERSION"
+
+Here is an example URL::
+
+   SRC_URI = "crate://crates.io/glob/0.2.11"
 
 Other Fetchers
 --------------

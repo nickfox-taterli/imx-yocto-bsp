@@ -443,7 +443,7 @@ def find_sstate_manifest(taskdata, taskdata2, taskname, d, multilibcache):
     elif "-cross-canadian" in taskdata:
         pkgarchs = ["${SDK_ARCH}_${SDK_ARCH}-${SDKPKGSUFFIX}"]
     elif "-cross-" in taskdata:
-        pkgarchs = ["${BUILD_ARCH}_${TARGET_ARCH}"]
+        pkgarchs = ["${BUILD_ARCH}"]
     elif "-crosssdk" in taskdata:
         pkgarchs = ["${BUILD_ARCH}_${SDK_ARCH}_${SDK_OS}"]
     else:
@@ -489,9 +489,10 @@ def OEOuthashBasic(path, sigfile, task, d):
     include_timestamps = False
     include_root = True
     if task == "package":
-        include_timestamps = d.getVar('BUILD_REPRODUCIBLE_BINARIES') == '1'
+        include_timestamps = True
         include_root = False
-    extra_content = d.getVar('HASHEQUIV_HASH_VERSION')
+    hash_version = d.getVar('HASHEQUIV_HASH_VERSION')
+    extra_sigdata = d.getVar("HASHEQUIV_EXTRA_SIGDATA")
 
     filemaps = {}
     for m in (d.getVar('SSTATE_HASHEQUIV_FILEMAP') or '').split():
@@ -506,8 +507,11 @@ def OEOuthashBasic(path, sigfile, task, d):
         basepath = os.path.normpath(path)
 
         update_hash("OEOuthashBasic\n")
-        if extra_content:
-            update_hash(extra_content + "\n")
+        if hash_version:
+            update_hash(hash_version + "\n")
+
+        if extra_sigdata:
+            update_hash(extra_sigdata + "\n")
 
         # It is only currently useful to get equivalent hashes for things that
         # can be restored from sstate. Since the sstate object is named using

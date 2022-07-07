@@ -25,10 +25,13 @@ RDEPENDS:packagegroup-kubernetes-base = " \
 
 RDEPENDS:packagegroup-k8s-host = " \
     packagegroup-kubernetes-base \
+    kubernetes \
 "
 
 RDEPENDS:packagegroup-k8s-node = " \
     packagegroup-kubernetes-base \
+    kubeadm \
+    kubernetes-misc \
 "
 
 RDEPENDS:packagegroup-k3s-host = " \

@@ -37,7 +37,7 @@ python __anonymous() {
 INSANE_SKIP:${PN}-dbg += "libdir"
 INSANE_SKIP:${PN}-examples += "libdir dev-so"
 
-SYSROOT_DIRS:append:mingw32 = " ${QT6_INSTALL_BINDIR}"
+SYSROOT_DIRS += "${QT6_INSTALL_BINDIR} ${QT6_INSTALL_LIBEXECDIR}"
 
 PACKAGE_BEFORE_PN = "${PN}-qmlplugins ${PN}-tools ${PN}-plugins ${PN}-examples"
 
@@ -90,6 +90,11 @@ FILES:${PN}-dev += " \
     ${QT6_INSTALL_LIBDIR}/metatypes \
     ${QT6_INSTALL_LIBDIR}/pkgconfig \
     ${QT6_INSTALL_MKSPECSDIR} \
+    ${QT6_INSTALL_QMLDIR}/*.qmltypes \
+    ${QT6_INSTALL_QMLDIR}/*/*.qmltypes \
+    ${QT6_INSTALL_QMLDIR}/*/*/*.qmltypes \
+    ${QT6_INSTALL_QMLDIR}/*/*/*/*.qmltypes \
+    ${QT6_INSTALL_QMLDIR}/*/*/*/*/*.qmltypes \
     ${QT6_INSTALL_QMLDIR}/*/designer \
     ${QT6_INSTALL_QMLDIR}/*/*/designer \
     ${QT6_INSTALL_QMLDIR}/*/*/*/designer \
@@ -110,6 +115,7 @@ FILES:${PN}-staticdev += " \
     ${QT6_INSTALL_QMLDIR}/*/*/*/*/*.a \
     ${QT6_INSTALL_QMLDIR}/*/*/*/*/*.prl \
     ${QT6_INSTALL_LIBDIR}/objects* \
+    ${QT6_INSTALL_PLUGINSDIR}/*/objects* \
     ${QT6_INSTALL_QMLDIR}/*/objects*/ \
     ${QT6_INSTALL_QMLDIR}/*/*/objects*/ \
     ${QT6_INSTALL_QMLDIR}/*/*/*/objects*/ \

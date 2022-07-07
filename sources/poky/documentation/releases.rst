@@ -1,15 +1,30 @@
 .. SPDX-License-Identifier: CC-BY-SA-2.0-UK
 
+..
+   NOTE FOR RELEASE MAINTAINERS:
+   This file only needs updating in the development release ("master" branch)
+   When documentation for stable releases is built,
+   the latest version from "master" is used
+   by https://git.yoctoproject.org/yocto-autobuilder-helper/tree/scripts/run-docs-build
+
 ===========================
  Supported Release Manuals
 ===========================
 
-*****************************
+******************************
+Release Series 4.0 (kirkstone)
+******************************
+
+- :yocto_docs:`4.0 Documentation </4.0>`
+
+******************************
 Release Series 3.4 (honister)
-*****************************
+******************************
 
 - :yocto_docs:`3.4 Documentation </3.4>`
 - :yocto_docs:`3.4.1 Documentation </3.4.1>`
+- :yocto_docs:`3.4.2 Documentation </3.4.2>`
+- :yocto_docs:`3.4.3 Documentation </3.4.3>`
 
 ******************************
 Release Series 3.3 (hardknott)
@@ -20,6 +35,7 @@ Release Series 3.3 (hardknott)
 - :yocto_docs:`3.3.2 Documentation </3.3.2>`
 - :yocto_docs:`3.3.3 Documentation </3.3.3>`
 - :yocto_docs:`3.3.4 Documentation </3.3.4>`
+- :yocto_docs:`3.3.5 Documentation </3.3.5>`
 
 ****************************
 Release Series 3.1 (dunfell)
@@ -38,6 +54,9 @@ Release Series 3.1 (dunfell)
 - :yocto_docs:`3.1.10 Documentation </3.1.10>`
 - :yocto_docs:`3.1.11 Documentation </3.1.11>`
 - :yocto_docs:`3.1.12 Documentation </3.1.12>`
+- :yocto_docs:`3.1.13 Documentation </3.1.13>`
+- :yocto_docs:`3.1.14 Documentation </3.1.14>`
+- :yocto_docs:`3.1.15 Documentation </3.1.15>`
 
 ==========================
  Outdated Release Manuals

@@ -30,6 +30,8 @@ from bb.fetch2.npm import npm_integrity
 from bb.fetch2.npm import npm_localfile
 from bb.fetch2.npm import npm_unpack
 from bb.utils import is_semver
+from bb.utils import lockfile
+from bb.utils import unlockfile
 
 def foreach_dependencies(shrinkwrap, callback=None, dev=False):
     """
@@ -86,7 +88,11 @@ class NpmShrinkWrap(FetchMethod):
             version = params.get("version", None)
 
             # Handle registry sources
-            if is_semver(version) and resolved and integrity:
+            if is_semver(version) and integrity:
+                # Handle duplicate dependencies without url
+                if not resolved:
+                    return
+
                 localfile = npm_localfile(name, version)
 
                 uri = URI(resolved)
@@ -111,7 +117,7 @@ class NpmShrinkWrap(FetchMethod):
 
             # Handle http tarball sources
             elif version.startswith("http") and integrity:
-                localfile = os.path.join("npm2", os.path.basename(version))
+                localfile = npm_localfile(os.path.basename(version))
 
                 uri = URI(version)
                 uri.params["downloadfilename"] = localfile
@@ -125,6 +131,8 @@ class NpmShrinkWrap(FetchMethod):
 
             # Handle git sources
             elif version.startswith("git"):
+                if version.startswith("github:"):
+                    version = "git+https://github.com/" + version[len("github:"):]
                 regex = re.compile(r"""
                     ^
                     git\+
@@ -195,7 +203,9 @@ class NpmShrinkWrap(FetchMethod):
             proxy_ud = ud.proxy.ud[proxy_url]
             proxy_d = ud.proxy.d
             proxy_ud.setup_localpath(proxy_d)
+            lf = lockfile(proxy_ud.lockfile)
             returns.append(handle(proxy_ud.method, proxy_ud, proxy_d))
+            unlockfile(lf)
         return returns
 
     def verify_donestamp(self, ud, d):

@@ -172,8 +172,6 @@ RDEPENDS:packagegroup-meta-networking-protocols = "\
     xl2tpd \
 "
 
-RDEPENDS:packagegroup-meta-networking-protocols:remove:libc-musl = "mdns"
-
 RDEPENDS:packagegroup-meta-networking-support = "\
     aoetools \
     arptables \
@@ -207,17 +205,20 @@ RDEPENDS:packagegroup-meta-networking-support = "\
     libtevent \
     linux-atm \
     lksctp-tools \
+    mctp \
     memcached \
     ifenslave \
     netcat \
     netcat-openbsd \
     libtdb \
-    ${@bb.utils.contains("LICENSE_FLAGS_WHITELIST", "non-commercial", "netperf", "", d)} \
+    ${@bb.utils.contains("LICENSE_FLAGS_ACCEPTED", "non-commercial", "netperf", "", d)} \
     yp-tools \
     ypbind-mt \
     yp-tools \
     mtr \
+    netsniff-ng \
     ntp ntpdate sntp ntpdc ntpq ntp-tickadj ntp-utils \
+    ${@bb.utils.contains("DISTRO_FEATURES", "x11", "ntpsec", "", d)} \
     nbd-client \
     nbd-server \
     nbd-trdump \
@@ -233,7 +234,6 @@ RDEPENDS:packagegroup-meta-networking-support = "\
     tcpdump \
     tcpslice \
     netcf \
-    nghttp2 \
     tnftp \
     traceroute \
     tunctl \

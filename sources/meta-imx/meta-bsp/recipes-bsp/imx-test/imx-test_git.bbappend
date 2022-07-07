@@ -1,13 +1,18 @@
 # Copyright (C) 2012-2016 O.S. Systems Software LTDA.
 # Copyright (C) 2013-2016 Freescale Semiconductor
-# Copyright 2017-2021 NXP
+# Copyright 2017-2022 NXP
 
-SRCBRANCH = "lf-5.15.5_1.0.0"
+DEPENDS:append = " freetype"
+DEPENDS:append:mx8ulp-nxp-bsp = " imx-lib"
+DEPENDS:append:mx9-nxp-bsp = " imx-lib"
+
+SRCBRANCH = "lf-5.15.32_2.0.0"
 IMXTEST_SRC ?= "git://source.codeaurora.org/external/imx/imx-test.git;protocol=https"
 SRC_URI = " \
     ${IMXTEST_SRC};branch=${SRCBRANCH} \
     file://memtool_profile \
 "
-SRCREV = "b364c1aacc72a63290106ae065bb2f6a8c365ec6"
+SRCREV = "c640c7e8456b0516851e76adb2acce6b3866b1fb"
 
-PACKAGECONFIG:append:mx8m = " swpdm"
+PLATFORM:mx8ulp-nxp-bsp = "IMX8ULP"
+PLATFORM:mx9-nxp-bsp = "IMX8ULP"

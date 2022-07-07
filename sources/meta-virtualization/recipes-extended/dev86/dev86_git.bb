@@ -1,6 +1,6 @@
 DESCRIPTION = "This is a cross development C compiler, assembler and linker environment for the production of 8086 executables (Optionally MSDOS COM)"
 HOMEPAGE = "http://www.debath.co.uk/dev86/"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=8ca43cbc842c2336e835926c2166c28b"
 SECTION = "console/tools"
 
@@ -11,7 +11,8 @@ SRC_URI = "git://github.com/jbruchon/${BPN}.git;protocol=https;branch=master \
     file://0001-cpp-Makefile-respect-LDFLAGS-when-building-bcc-cpp.patch \
     file://0003-cpp-update-token1.tok-to-make-new-gperf-happy-regen..patch \
     file://0004-regen-token2.h-token1.h-with-gperf-3.1.patch \
-	file://cross.patch \
+    file://cross.patch \
+    file://0001-cpp-fix-race-writing-token.h-files.patch \
 "
 
 S = "${WORKDIR}/git"

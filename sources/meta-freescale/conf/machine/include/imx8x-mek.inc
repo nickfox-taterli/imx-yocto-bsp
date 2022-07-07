@@ -1,5 +1,3 @@
-MACHINEOVERRIDES =. "mx8:mx8x:"
-
 require conf/machine/include/imx-base.inc
 require conf/machine/include/arm/armv8a/tune-cortexa35.inc
 
@@ -26,7 +24,6 @@ KERNEL_DEVICETREE = " \
 KERNEL_DEVICETREE:append:use-nxp-bsp = " \
     freescale/${KERNEL_DEVICETREE_BASENAME}-dsi-rm67191.dtb \
     freescale/${KERNEL_DEVICETREE_BASENAME}-dsi-rm67191-rpmsg.dtb \
-    freescale/${KERNEL_DEVICETREE_BASENAME}-dsp.dtb \
     freescale/${KERNEL_DEVICETREE_BASENAME}-enet2-tja1100.dtb \
     freescale/${KERNEL_DEVICETREE_BASENAME}-it6263-lvds0-dual-channel.dtb \
     freescale/${KERNEL_DEVICETREE_BASENAME}-it6263-lvds0-dual-channel-rpmsg.dtb \

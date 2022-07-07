@@ -5,23 +5,23 @@
 SUMMARY = "Test programs for i.MX BSP"
 DESCRIPTION = "Unit tests for the i.MX BSP"
 SECTION = "base"
-LICENSE = "GPLv2+"
+LICENSE = "GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-or-later;md5=fed54355545ffd980b814dab4a3b312c"
 
 DEPENDS = "alsa-lib libdrm"
-DEPENDS:append:mx6 = " imx-lib"
-DEPENDS:append:mx7 = " imx-lib"
+DEPENDS:append:mx6-nxp-bsp = " imx-lib"
+DEPENDS:append:mx7-nxp-bsp = " imx-lib"
 DEPENDS:append:imxvpu = " virtual/imxvpu"
 
 PE = "1"
 PV = "7.0+${SRCPV}"
 
-SRCBRANCH = "lf-5.10.52_2.1.0"
+SRCBRANCH = "lf-5.10.72_2.2.0"
 SRC_URI = " \
     git://source.codeaurora.org/external/imx/imx-test.git;protocol=https;branch=${SRCBRANCH} \
     file://memtool_profile \
 "
-SRCREV = "2dcb987a91183770f328258b424d9ad2fdfdc17a"
+SRCREV = "a26b1ee51177e317aa05251d4c8f10c4c68064f6"
 S = "${WORKDIR}/git"
 
 inherit module-base use-imx-headers
@@ -29,22 +29,22 @@ inherit module-base use-imx-headers
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
-PLATFORM:mx6q  = "IMX6Q"
-PLATFORM:mx6dl = "IMX6Q"
-PLATFORM:mx6sl = "IMX6SL"
-PLATFORM:mx6sll = "IMX6SL"
-PLATFORM:mx6sx = "IMX6SX"
-PLATFORM:mx6ul = "IMX6UL"
-PLATFORM:mx7d  = "IMX7D"
-PLATFORM:mx7ulp = "IMX7D"
-PLATFORM:mx8 = "IMX8"
+PLATFORM:mx6q-nxp-bsp  = "IMX6Q"
+PLATFORM:mx6dl-nxp-bsp = "IMX6Q"
+PLATFORM:mx6sl-nxp-bsp = "IMX6SL"
+PLATFORM:mx6sll-nxp-bsp = "IMX6SL"
+PLATFORM:mx6sx-nxp-bsp = "IMX6SX"
+PLATFORM:mx6ul-nxp-bsp = "IMX6UL"
+PLATFORM:mx7d-nxp-bsp  = "IMX7D"
+PLATFORM:mx7ulp-nxp-bsp = "IMX7D"
+PLATFORM:mx8-nxp-bsp = "IMX8"
 
 PARALLEL_MAKE = "-j 1"
 EXTRA_OEMAKE += "${PACKAGECONFIG_CONFARGS}"
 
 PACKAGECONFIG = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)}"
 PACKAGECONFIG:append:imxvpu = " vpu"
-PACKAGECONFIG:append:mx8m   = " swpdm"
+PACKAGECONFIG:append:mx8m-nxp-bsp   = " swpdm"
 
 PACKAGECONFIG[x11] = ",,libx11 libxdamage libxrender libxrandr"
 PACKAGECONFIG[vpu] = "HAS_VPU=true,HAS_VPU=false,virtual/imxvpu"

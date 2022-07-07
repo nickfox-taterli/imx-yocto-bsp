@@ -6,6 +6,7 @@
 import glob
 import os
 import unittest
+import re
 from checklayer import get_signatures, LayerType, check_command, get_depgraph, compare_signatures
 from checklayer.case import OECheckLayerTestCase
 
@@ -26,6 +27,16 @@ class CommonCheckLayer(OECheckLayerTestCase):
         self.assertTrue(data,
                 msg="Layer contains a README file but it is empty.")
 
+        # If a layer's README references another README, then the checks below are not valid
+        if re.search('README', data, re.IGNORECASE):
+            return
+
+        self.assertIn('maintainer', data.lower())
+        self.assertIn('patch', data.lower())
+        # Check that there is an email address in the README
+        email_regex = re.compile(r"[^@]+@[^@]+")
+        self.assertTrue(email_regex.match(data))
+
     def test_parse(self):
         check_command('Layer %s failed to parse.' % self.tc.layer['name'],
                       'bitbake -p')
@@ -42,6 +53,21 @@ class CommonCheckLayer(OECheckLayerTestCase):
         fails.
         '''
         get_signatures(self.td['builddir'], failsafe=False)
+
+    def test_world_inherit_class(self):
+        '''
+        This also does "bitbake -S none world" along with inheriting "yocto-check-layer"
+        class, which can do additional per-recipe test cases.
+        '''
+        msg = []
+        try:
+            get_signatures(self.td['builddir'], failsafe=False, machine=None, extravars='BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS INHERIT" INHERIT="yocto-check-layer"')
+        except RuntimeError as ex:
+            msg.append(str(ex))
+        if msg:
+            msg.insert(0, 'Layer %s failed additional checks from yocto-check-layer.bbclass\nSee below log for specific recipe parsing errors:\n' % \
+                self.tc.layer['name'])
+            self.fail('\n'.join(msg))
 
     def test_signatures(self):
         if self.tc.layer['type'] == LayerType.SOFTWARE and \

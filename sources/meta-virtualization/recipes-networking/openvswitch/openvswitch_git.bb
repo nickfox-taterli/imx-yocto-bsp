@@ -14,28 +14,25 @@ RDEPENDS:${PN}-ptest += "\
 	"
 
 S = "${WORKDIR}/git"
-PV = "2.15.1+${SRCPV}"
-CVE_VERSION = "2.13.0"
+PV = "2.17.1+${SRCPV}"
+CVE_VERSION = "2.17.1"
 
 FILESEXTRAPATHS:append := "${THISDIR}/${PN}-git:"
 
-SRCREV = "f8274b78c3403591e84f3c2bbacf8c86920d68ba"
-SRC_URI += "git://github.com/openvswitch/ovs.git;protocol=https;branch=branch-2.15 \
+SRCREV = "41bb202fb37f184b0a8820a029c62d03c118614e"
+SRC_URI += "git://github.com/openvswitch/ovs.git;protocol=https;branch=branch-2.17 \
             file://openvswitch-add-ptest-71d553b995d0bd527d3ab1e9fbaf5a2ae34de2f3.patch \
             file://run-ptest \
             file://disable_m4_check.patch \
             file://kernel_module.patch \
             file://systemd-update-tool-paths.patch \
             file://systemd-create-runtime-dirs.patch \
-            file://0001-ovs-use-run-instead-of-var-run-for-in-systemd-units.patch \
            "
 
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1ce5d23a6429dff345518758f13aaeab"
 
-DPDK_INSTALL_DIR ?= "/opt/dpdk"
-
 PACKAGECONFIG ?= "libcap-ng"
-PACKAGECONFIG[dpdk] = "--with-dpdk=${STAGING_DIR_TARGET}${DPDK_INSTALL_DIR}/share/${TARGET_ARCH}-native-linuxapp-gcc,,dpdk,dpdk"
+PACKAGECONFIG[dpdk] = "--with-dpdk=shared,,dpdk,dpdk"
 PACKAGECONFIG[libcap-ng] = "--enable-libcapng,--disable-libcapng,libcap-ng,"
 PACKAGECONFIG[ssl] = ",--disable-ssl,openssl,"
 

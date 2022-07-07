@@ -14,14 +14,14 @@ SRCBRANCH = "master"
 SECURE_ENCLAVE_LIB_SRC ?= "git://github.com/NXP/imx-secure-enclave.git;protocol=https"
 
 SRC_URI = "${SECURE_ENCLAVE_LIB_SRC};branch=${SRCBRANCH}"
-SRCREV = "84df462f6168e5e95837ac736b11128a054642fb"
+SRCREV = "f203c95ce2fa9abccaef5ed079ccd0aac16e5c53"
 
 S = "${WORKDIR}/git"
 
 TARGET_CC_ARCH += "${LDFLAGS}"
 
 do_install () {
-	oe_runmake DESTDIR=${D} install
+	oe_runmake DESTDIR=${D} install_tests
 }
 
-COMPATIBLE_MACHINE = "(mx8ulp)"
+COMPATIBLE_MACHINE = "(mx8ulp-nxp-bsp)"

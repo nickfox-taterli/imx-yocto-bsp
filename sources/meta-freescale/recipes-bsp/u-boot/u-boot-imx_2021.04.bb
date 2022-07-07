@@ -7,7 +7,16 @@ require u-boot-imx-common_${PV}.inc
 
 PROVIDES += "u-boot"
 
-do_deploy:append:mx8m() {
+inherit uuu_bootloader_tag
+
+UUU_BOOTLOADER            = ""
+UUU_BOOTLOADER:mx6-nxp-bsp        = "${UBOOT_BINARY}"
+UUU_BOOTLOADER:mx7-nxp-bsp        = "${UBOOT_BINARY}"
+UUU_BOOTLOADER_TAGGED     = ""
+UUU_BOOTLOADER_TAGGED:mx6-nxp-bsp = "u-boot-tagged.${UBOOT_SUFFIX}"
+UUU_BOOTLOADER_TAGGED:mx7-nxp-bsp = "u-boot-tagged.${UBOOT_SUFFIX}"
+
+do_deploy:append:mx8m-nxp-bsp() {
     # Deploy u-boot-nodtb.bin and fsl-imx8m*-XX.dtb for mkimage to generate boot binary
     if [ -n "${UBOOT_CONFIG}" ]
     then
@@ -29,4 +38,4 @@ do_deploy:append:mx8m() {
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-COMPATIBLE_MACHINE = "(mx6|mx7|mx8|use-mainline-bsp)"
+COMPATIBLE_MACHINE = "(mx6-generic-bsp|mx7-generic-bsp|mx8-generic-bsp)"

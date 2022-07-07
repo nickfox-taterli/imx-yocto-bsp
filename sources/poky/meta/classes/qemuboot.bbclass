@@ -29,13 +29,15 @@
 #
 # QB_AUDIO_DRV: qemu audio driver, e.g., "alsa", set it when support audio
 #
-# QB_AUDIO_OPT: qemu audio option, e.g., "-soundhw ac97,es1370", used
+# QB_AUDIO_OPT: qemu audio option, e.g., "-device AC97", used
 #               when QB_AUDIO_DRV is set.
 #
 # QB_RNG: Pass-through for host random number generator, it can speedup boot
 #         in system mode, where system is experiencing entropy starvation
 #
 # QB_KERNEL_ROOT: kernel's root, e.g., /dev/vda
+#                 By default "/dev/vda rw" gets passed to the kernel.
+#                 To mount the rootfs read-only QB_KERNEL_ROOT can be set to e.g. "/dev/vda ro".
 #
 # QB_NETWORK_DEVICE: network device, e.g., "-device virtio-net-pci,netdev=net0,mac=@MAC@",
 #                    it needs work with QB_TAP_OPT and QB_SLIRP_OPT.
@@ -91,7 +93,7 @@ QB_RNG ?= "-object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-p
 QB_OPT_APPEND ?= ""
 QB_NETWORK_DEVICE ?= "-device virtio-net-pci,netdev=net0,mac=@MAC@"
 QB_CMDLINE_IP_SLIRP ?= "ip=dhcp"
-QB_CMDLINE_IP_TAP ?= "ip=192.168.7.@CLIENT@::192.168.7.@GATEWAY@:255.255.255.0"
+QB_CMDLINE_IP_TAP ?= "ip=192.168.7.@CLIENT@::192.168.7.@GATEWAY@:255.255.255.0::eth0:off:8.8.8.8"
 QB_ROOTFS_EXTRA_OPT ?= ""
 QB_GRAPHICS ?= ""
 
@@ -107,7 +109,7 @@ def qemuboot_vars(d):
     build_vars = ['MACHINE', 'TUNE_ARCH', 'DEPLOY_DIR_IMAGE',
                 'KERNEL_IMAGETYPE', 'IMAGE_NAME', 'IMAGE_LINK_NAME',
                 'STAGING_DIR_NATIVE', 'STAGING_BINDIR_NATIVE',
-                'STAGING_DIR_HOST', 'SERIAL_CONSOLES']
+                'STAGING_DIR_HOST', 'SERIAL_CONSOLES', 'UNINATIVE_LOADER']
     return build_vars + [k for k in d.keys() if k.startswith('QB_')]
 
 do_write_qemuboot_conf[vardeps] += "${@' '.join(qemuboot_vars(d))}"
@@ -116,7 +118,10 @@ python do_write_qemuboot_conf() {
     import configparser
 
     qemuboot = "%s/%s.qemuboot.conf" % (d.getVar('IMGDEPLOYDIR'), d.getVar('IMAGE_NAME'))
-    qemuboot_link = "%s/%s.qemuboot.conf" % (d.getVar('IMGDEPLOYDIR'), d.getVar('IMAGE_LINK_NAME'))
+    if d.getVar('IMAGE_LINK_NAME'):
+        qemuboot_link = "%s/%s.qemuboot.conf" % (d.getVar('IMGDEPLOYDIR'), d.getVar('IMAGE_LINK_NAME'))
+    else:
+        qemuboot_link = ""
     finalpath = d.getVar("DEPLOY_DIR_IMAGE")
     topdir = d.getVar('TOPDIR')
     cf = configparser.ConfigParser()
@@ -131,6 +136,8 @@ python do_write_qemuboot_conf() {
                                'qemu-helper-native/1.0-r1/recipe-sysroot-native/usr/bin/')
         else:
             val = d.getVar(k)
+        if val is None:
+            continue
         # we only want to write out relative paths so that we can relocate images
         # and still run them
         if val.startswith(topdir):
@@ -151,7 +158,7 @@ python do_write_qemuboot_conf() {
     with open(qemuboot, 'w') as f:
         cf.write(f)
 
-    if qemuboot_link != qemuboot:
+    if qemuboot_link and qemuboot_link != qemuboot:
         if os.path.lexists(qemuboot_link):
            os.remove(qemuboot_link)
         os.symlink(os.path.basename(qemuboot), qemuboot_link)

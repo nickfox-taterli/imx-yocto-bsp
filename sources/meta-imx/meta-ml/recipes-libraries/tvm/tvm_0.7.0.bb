@@ -14,7 +14,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=e313a9b6eda820e35716d9529001537f \
 DEPENDS = "tim-vx"
 RDEPENDS:${PN} = "tim-vx python3-decorator python3-numpy python3-attrs python3-psutil python3"
 
-SRCBRANCH = "lf-5.15.5_1.0.0"
+SRCBRANCH = "lf-5.15.32_2.0.0"
 TVM_SRC ?= "git://source.codeaurora.org/external/imx/eiq-tvm-imx.git;protocol=ssh"
 SRC_URI = "${TVM_SRC};branch=${SRCBRANCH}\
                git://github.com/dmlc/dlpack;protocol=https;nobranch=1;destsuffix=${S}/3rdparty/dlpack;name=dlpack \
@@ -31,25 +31,25 @@ SRCREV_rang = "cabe04d6d6b05356fa8f9741704924788f0dd762"
 SRCREV_vta-hw = "87ce9acfae550d1a487746e9d06c2e250076e54c"
 
 S = "${WORKDIR}/git"
+SETUPTOOLS_SETUP_PATH = "${S}/python"
 
 inherit setuptools3 cmake python3native
 
 EXTRA_OECMAKE += "-DUSE_VSI_NPU=ON -DUSE_VSI_NPU_RUNTIME=ON"
 
+do_compile:append() {
+    export TVM_LIBRARY_PATH=${WORKDIR}/build/
+    setuptools3_do_compile
+}
+
 do_install () {
     cmake_do_install
-
-    cp -d ${WORKDIR}/build/*.so* ${S}/python/tvm
 
     install -d ${D}${bindir}/${PN}-${PV}/examples
     # Install python example
     cp ${S}/tests/python/contrib/test_vsi_npu/label_image.py ${D}${bindir}/${PN}-${PV}/examples
 
-    rm -f ${S}/setup.py ${S}/tvm
-    ln -s ${S}/python/setup.py ${S}/setup.py
-    ln -s ${S}/python/tvm ${S}/tvm
-    distutils3_do_install
-
+    setuptools3_do_install
     rm -fr ${D}${datadir}
 }
 
@@ -58,4 +58,4 @@ INSANE_SKIP:${PN} += "dev-deps"
 FILES_SOLIBSDEV = ""
 FILES:${PN} = "${bindir}/* ${libdir}/*"
 
-COMPATIBLE_MACHINE = "(mx8)"
+COMPATIBLE_MACHINE = "(mx8-nxp-bsp)"

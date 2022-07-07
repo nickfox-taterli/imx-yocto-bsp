@@ -3,15 +3,15 @@
 require imx-mkimage_git.inc
 
 DESCRIPTION = "Generate Boot Loader for i.MX 8 device"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-only;md5=801f80980d171dd6425610833a22dbe6"
 SECTION = "BSP"
 
 inherit use-imx-security-controller-firmware
 
 IMX_EXTRA_FIRMWARE      = "firmware-imx-8 imx-sc-firmware imx-seco"
-IMX_EXTRA_FIRMWARE:mx8m = "firmware-imx-8m"
-IMX_EXTRA_FIRMWARE:mx8x = "imx-sc-firmware imx-seco"
+IMX_EXTRA_FIRMWARE:mx8m-generic-bsp = "firmware-imx-8m"
+IMX_EXTRA_FIRMWARE:mx8x-generic-bsp = "imx-sc-firmware imx-seco"
 DEPENDS += " \
     u-boot \
     ${IMX_EXTRA_FIRMWARE} \
@@ -20,11 +20,14 @@ DEPENDS += " \
 "
 # xxd is a dependency of fspi_packer.sh
 DEPENDS += "xxd-native"
-DEPENDS:append:mx8m = " u-boot-mkimage-native dtc-native"
+DEPENDS:append:mx8m-generic-bsp = " u-boot-mkimage-native dtc-native"
 BOOT_NAME = "imx-boot"
 PROVIDES = "${BOOT_NAME}"
 
-inherit deploy
+inherit deploy uuu_bootloader_tag
+
+UUU_BOOTLOADER        = "${BOOT_NAME}"
+UUU_BOOTLOADER_TAGGED = "${BOOT_NAME}-tagged"
 
 # Add CFLAGS with native INCDIR & LIBDIR for imx-mkimage build
 CFLAGS = "-O2 -Wall -std=c99 -I ${STAGING_INCDIR_NATIVE} -L ${STAGING_LIBDIR_NATIVE}"
@@ -58,18 +61,19 @@ IMXBOOT_TARGETS ?= \
                                                   'flash_multi_cores flash_dcd', d), d)}"
 
 BOOT_STAGING       = "${S}/${IMX_BOOT_SOC_TARGET}"
-BOOT_STAGING:mx8m  = "${S}/iMX8M"
-BOOT_STAGING:mx8dx = "${S}/iMX8QX"
+BOOT_STAGING:mx8m-generic-bsp  = "${S}/iMX8M"
+BOOT_STAGING:mx8dx-generic-bsp = "${S}/iMX8QX"
 
 SOC_FAMILY      = "INVALID"
-SOC_FAMILY:mx8  = "mx8"
-SOC_FAMILY:mx8m = "mx8m"
-SOC_FAMILY:mx8x = "mx8x"
+SOC_FAMILY:mx8-generic-bsp  = "mx8"
+SOC_FAMILY:mx8m-generic-bsp = "mx8m"
+SOC_FAMILY:mx8x-generic-bsp = "mx8x"
 
 REV_OPTION ?= ""
-REV_OPTION:mx8qxp = \
+REV_OPTION:mx8qxp-generic-bsp = \
     "${@bb.utils.contains('MACHINE_FEATURES', 'soc-revb0', '', \
                                                            'REV=C0', d)}"
+REV_OPTION:mx8dx-generic-bsp  = "REV=C0"
 
 compile_mx8m() {
     bbnote 8MQ/8MM/8MN/8MP boot binary build
@@ -190,13 +194,12 @@ do_deploy() {
         fi
         install -m 0644 ${S}/${BOOT_CONFIG_MACHINE}-${target} ${DEPLOYDIR}
     done
-    cd ${DEPLOYDIR}
-    ln -sf ${BOOT_CONFIG_MACHINE}-${IMAGE_IMXBOOT_TARGET} ${BOOT_NAME}
-    cd -
+
+    ln -sf ${BOOT_CONFIG_MACHINE}-${IMAGE_IMXBOOT_TARGET}    ${DEPLOYDIR}/${BOOT_NAME}
 }
 addtask deploy before do_build after do_compile
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 FILES:${PN} = "/boot"
 
-COMPATIBLE_MACHINE = "(mx8)"
+COMPATIBLE_MACHINE = "(mx8-generic-bsp)"

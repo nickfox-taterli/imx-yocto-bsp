@@ -12,7 +12,7 @@ inherit logging
 
 OE_EXTRA_IMPORTS ?= ""
 
-OE_IMPORTS += "os sys time oe.path oe.utils oe.types oe.package oe.packagegroup oe.sstatesig oe.lsb oe.cachedpath oe.license ${OE_EXTRA_IMPORTS}"
+OE_IMPORTS += "os sys time oe.path oe.utils oe.types oe.package oe.packagegroup oe.sstatesig oe.lsb oe.cachedpath oe.license oe.qa oe.reproducible oe.rust ${OE_EXTRA_IMPORTS}"
 OE_IMPORTS[type] = "list"
 
 PACKAGECONFIG_CONFARGS ??= ""
@@ -20,21 +20,14 @@ PACKAGECONFIG_CONFARGS ??= ""
 def oe_import(d):
     import sys
 
-    bbpath = d.getVar("BBPATH").split(":")
-    sys.path[0:0] = [os.path.join(dir, "lib") for dir in bbpath]
-
-    def inject(name, value):
-        """Make a python object accessible from the metadata"""
-        if hasattr(bb.utils, "_context"):
-            bb.utils._context[name] = value
-        else:
-            __builtins__[name] = value
+    bbpath = [os.path.join(dir, "lib") for dir in d.getVar("BBPATH").split(":")]
+    sys.path[0:0] = [dir for dir in bbpath if dir not in sys.path]
 
     import oe.data
     for toimport in oe.data.typed_value("OE_IMPORTS", d):
         try:
-            imported = __import__(toimport)
-            inject(toimport.split(".", 1)[0], imported)
+            # Make a python object accessible from the metadata
+            bb.utils._context[toimport.split(".", 1)[0]] = __import__(toimport)
         except AttributeError as e:
             bb.error("Error importing OE modules: %s" % str(e))
     return ""
@@ -71,7 +64,7 @@ def get_base_dep(d):
         return ""
     return "${BASE_DEFAULT_DEPS}"
 
-BASE_DEFAULT_DEPS = "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}compilerlibs virtual/libc"
+BASE_DEFAULT_DEPS = "virtual/${HOST_PREFIX}gcc virtual/${HOST_PREFIX}compilerlibs virtual/libc"
 
 BASEDEPENDS = ""
 BASEDEPENDS:class-target = "${@get_base_dep(d)}"
@@ -150,17 +143,18 @@ do_fetch[dirs] = "${DL_DIR}"
 do_fetch[file-checksums] = "${@bb.fetch.get_checksum_file_list(d)}"
 do_fetch[file-checksums] += " ${@get_lic_checksum_file_list(d)}"
 do_fetch[vardeps] += "SRCREV"
+do_fetch[network] = "1"
 python base_do_fetch() {
 
     src_uri = (d.getVar('SRC_URI') or "").split()
-    if len(src_uri) == 0:
+    if not src_uri:
         return
 
     try:
         fetcher = bb.fetch2.Fetch(src_uri, d)
         fetcher.download()
     except bb.fetch2.BBFetchException as e:
-        bb.fatal(str(e))
+        bb.fatal("Bitbake Fetcher Error: " + repr(e))
 }
 
 addtask unpack after do_fetch
@@ -170,15 +164,53 @@ do_unpack[cleandirs] = "${@d.getVar('S') if os.path.normpath(d.getVar('S')) != o
 
 python base_do_unpack() {
     src_uri = (d.getVar('SRC_URI') or "").split()
-    if len(src_uri) == 0:
+    if not src_uri:
         return
 
     try:
         fetcher = bb.fetch2.Fetch(src_uri, d)
         fetcher.unpack(d.getVar('WORKDIR'))
     except bb.fetch2.BBFetchException as e:
-        bb.fatal(str(e))
+        bb.fatal("Bitbake Fetcher Error: " + repr(e))
 }
+
+SSTATETASKS += "do_deploy_source_date_epoch"
+
+do_deploy_source_date_epoch () {
+    mkdir -p ${SDE_DEPLOYDIR}
+    if [ -e ${SDE_FILE} ]; then
+        echo "Deploying SDE from ${SDE_FILE} -> ${SDE_DEPLOYDIR}."
+        cp -p ${SDE_FILE} ${SDE_DEPLOYDIR}/__source_date_epoch.txt
+    else
+        echo "${SDE_FILE} not found!"
+    fi
+}
+
+python do_deploy_source_date_epoch_setscene () {
+    sstate_setscene(d)
+    bb.utils.mkdirhier(d.getVar('SDE_DIR'))
+    sde_file = os.path.join(d.getVar('SDE_DEPLOYDIR'), '__source_date_epoch.txt')
+    if os.path.exists(sde_file):
+        target = d.getVar('SDE_FILE')
+        bb.debug(1, "Moving setscene SDE file %s -> %s" % (sde_file, target))
+        bb.utils.rename(sde_file, target)
+    else:
+        bb.debug(1, "%s not found!" % sde_file)
+}
+
+do_deploy_source_date_epoch[dirs] = "${SDE_DEPLOYDIR}"
+do_deploy_source_date_epoch[sstate-plaindirs] = "${SDE_DEPLOYDIR}"
+addtask do_deploy_source_date_epoch_setscene
+addtask do_deploy_source_date_epoch before do_configure after do_patch
+
+python create_source_date_epoch_stamp() {
+    source_date_epoch = oe.reproducible.get_source_date_epoch(d, d.getVar('S'))
+    oe.reproducible.epochfile_write(source_date_epoch, d.getVar('SDE_FILE'), d)
+}
+do_unpack[postfuncs] += "create_source_date_epoch_stamp"
+
+def get_source_date_epoch_value(d):
+    return oe.reproducible.epochfile_read(d.getVar('SDE_FILE'), d)
 
 def get_layers_branch_rev(d):
     layers = (d.getVar("BBLAYERS") or "").split()
@@ -290,9 +322,9 @@ python base_eventhandler() {
         source_mirror_fetch = d.getVar('SOURCE_MIRROR_FETCH', False)
         if not source_mirror_fetch:
             provs = (d.getVar("PROVIDES") or "").split()
-            multiwhitelist = (d.getVar("MULTI_PROVIDER_WHITELIST") or "").split()
+            multiprovidersallowed = (d.getVar("BB_MULTI_PROVIDER_ALLOWED") or "").split()
             for p in provs:
-                if p.startswith("virtual/") and p not in multiwhitelist:
+                if p.startswith("virtual/") and p not in multiprovidersallowed:
                     profprov = d.getVar("PREFERRED_PROVIDER_" + p)
                     if profprov and pn != profprov:
                         raise bb.parse.SkipRecipe("PREFERRED_PROVIDER_%s set to %s, not %s" % (p, profprov, pn))
@@ -399,6 +431,14 @@ python () {
     if os.path.normpath(d.getVar("WORKDIR")) != os.path.normpath(d.getVar("B")):
         d.appendVar("PSEUDO_IGNORE_PATHS", ",${B}")
 
+    # To add a recipe to the skip list , set:
+    #   SKIP_RECIPE[pn] = "message"
+    pn = d.getVar('PN')
+    skip_msg = d.getVarFlag('SKIP_RECIPE', pn)
+    if skip_msg:
+        bb.debug(1, "Skipping %s %s" % (pn, skip_msg))
+        raise bb.parse.SkipRecipe("Recipe will be skipped because: %s" % (skip_msg))
+
     # Handle PACKAGECONFIG
     #
     # These take the form:
@@ -495,9 +535,9 @@ python () {
         unmatched_license_flags = check_license_flags(d)
         if unmatched_license_flags:
             if len(unmatched_license_flags) == 1:
-                message = "because it has a restricted license '{0}'. Which is not whitelisted in LICENSE_FLAGS_WHITELIST".format(unmatched_license_flags[0])
+                message = "because it has a restricted license '{0}'. Which is not listed in LICENSE_FLAGS_ACCEPTED".format(unmatched_license_flags[0])
             else:
-                message = "because it has restricted licenses {0}. Which are not whitelisted in LICENSE_FLAGS_WHITELIST".format(
+                message = "because it has restricted licenses {0}. Which are not listed in LICENSE_FLAGS_ACCEPTED".format(
                     ", ".join("'{0}'".format(f) for f in unmatched_license_flags))
             bb.debug(1, "Skipping %s %s" % (pn, message))
             raise bb.parse.SkipRecipe(message)
@@ -548,46 +588,41 @@ python () {
         if check_license and bad_licenses:
             bad_licenses = expand_wildcard_licenses(d, bad_licenses)
 
-            whitelist = []
-            for lic in bad_licenses:
-                spdx_license = return_spdx(d, lic)
-                whitelist.extend((d.getVar("WHITELIST_" + lic) or "").split())
-                if spdx_license:
-                    whitelist.extend((d.getVar("WHITELIST_" + spdx_license) or "").split())
+            exceptions = (d.getVar("INCOMPATIBLE_LICENSE_EXCEPTIONS") or "").split()
 
-            if pn in whitelist:
-                '''
-                We need to track what we are whitelisting and why. If pn is
-                incompatible we need to be able to note that the image that
-                is created may infact contain incompatible licenses despite
-                INCOMPATIBLE_LICENSE being set.
-                '''
-                bb.note("Including %s as buildable despite it having an incompatible license because it has been whitelisted" % pn)
-            else:
-                pkgs = d.getVar('PACKAGES').split()
-                skipped_pkgs = {}
-                unskipped_pkgs = []
-                for pkg in pkgs:
-                    incompatible_lic = incompatible_license(d, bad_licenses, pkg)
-                    if incompatible_lic:
-                        skipped_pkgs[pkg] = incompatible_lic
-                    else:
-                        unskipped_pkgs.append(pkg)
-                if unskipped_pkgs:
-                    for pkg in skipped_pkgs:
-                        bb.debug(1, "Skipping the package %s at do_rootfs because of incompatible license(s): %s" % (pkg, ' '.join(skipped_pkgs[pkg])))
-                        d.setVar('LICENSE_EXCLUSION-' + pkg, ' '.join(skipped_pkgs[pkg]))
-                    for pkg in unskipped_pkgs:
-                        bb.debug(1, "Including the package %s" % pkg)
+            for lic_exception in exceptions:
+                if ":" in lic_exception:
+                    lic_exception.split(":")[0]
+                if lic_exception in oe.license.obsolete_license_list():
+                    bb.fatal("Invalid license %s used in INCOMPATIBLE_LICENSE_EXCEPTIONS" % lic_exception)
+
+            pkgs = d.getVar('PACKAGES').split()
+            skipped_pkgs = {}
+            unskipped_pkgs = []
+            for pkg in pkgs:
+                remaining_bad_licenses = oe.license.apply_pkg_license_exception(pkg, bad_licenses, exceptions)
+
+                incompatible_lic = incompatible_license(d, remaining_bad_licenses, pkg)
+                if incompatible_lic:
+                    skipped_pkgs[pkg] = incompatible_lic
                 else:
-                    incompatible_lic = incompatible_license(d, bad_licenses)
-                    for pkg in skipped_pkgs:
-                        incompatible_lic += skipped_pkgs[pkg]
-                    incompatible_lic = sorted(list(set(incompatible_lic)))
+                    unskipped_pkgs.append(pkg)
 
-                    if incompatible_lic:
-                        bb.debug(1, "Skipping recipe %s because of incompatible license(s): %s" % (pn, ' '.join(incompatible_lic)))
-                        raise bb.parse.SkipRecipe("it has incompatible license(s): %s" % ' '.join(incompatible_lic))
+            if unskipped_pkgs:
+                for pkg in skipped_pkgs:
+                    bb.debug(1, "Skipping the package %s at do_rootfs because of incompatible license(s): %s" % (pkg, ' '.join(skipped_pkgs[pkg])))
+                    d.setVar('_exclude_incompatible-' + pkg, ' '.join(skipped_pkgs[pkg]))
+                for pkg in unskipped_pkgs:
+                    bb.debug(1, "Including the package %s" % pkg)
+            else:
+                incompatible_lic = incompatible_license(d, bad_licenses)
+                for pkg in skipped_pkgs:
+                    incompatible_lic += skipped_pkgs[pkg]
+                incompatible_lic = sorted(list(set(incompatible_lic)))
+
+                if incompatible_lic:
+                    bb.debug(1, "Skipping recipe %s because of incompatible license(s): %s" % (pn, ' '.join(incompatible_lic)))
+                    raise bb.parse.SkipRecipe("it has incompatible license(s): %s" % ' '.join(incompatible_lic))
 
     needsrcrev = False
     srcuri = d.getVar('SRC_URI')
@@ -626,6 +661,10 @@ python () {
 
         elif uri.scheme == "npm":
             d.appendVarFlag('do_fetch', 'depends', ' nodejs-native:do_populate_sysroot')
+
+        elif uri.scheme == "repo":
+            needsrcrev = True
+            d.appendVarFlag('do_fetch', 'depends', ' repo-native:do_populate_sysroot')
 
         # *.lz4 should DEPEND on lz4-native for unpacking
         if path.endswith('.lz4'):
@@ -693,7 +732,7 @@ python () {
             if os.path.basename(p) == machine and os.path.isdir(p):
                 paths.append(p)
 
-        if len(paths) != 0:
+        if paths:
             for s in srcuri.split():
                 if not s.startswith("file://"):
                     continue
@@ -726,7 +765,7 @@ do_cleansstate[nostamp] = "1"
 
 python do_cleanall() {
     src_uri = (d.getVar('SRC_URI') or "").split()
-    if len(src_uri) == 0:
+    if not src_uri:
         return
 
     try:

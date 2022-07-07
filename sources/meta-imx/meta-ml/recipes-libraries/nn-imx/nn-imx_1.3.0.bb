@@ -1,4 +1,4 @@
-# Copyright 2020-2021 NXP
+# Copyright 2020-2022 NXP
 DESCRIPTION = "i.MX Neural Networks Accelerator Plugin"
 LICENSE = "MIT"
 
@@ -8,7 +8,7 @@ DEPENDS = "imx-gpu-viv"
 NN_IMX_SRC ?= "git://source.codeaurora.org/external/imx/nn-imx.git;protocol=https"
 SRCBRANCH = "imx_1.3.0"
 
-SRCREV = "14210741d258326fc7e00e56f224b495fd0c2094" 
+SRCREV = "87e262fc89a7f4819b35188f9b2e7117b8563b89"
 
 SRC_URI = "${NN_IMX_SRC};branch=${SRCBRANCH}"
 
@@ -40,5 +40,5 @@ INSANE_SKIP:${PN} += "dev-so"
 
 # Works for i.MX 8 with GPU except for 8M Mini
 COMPATIBLE_MACHINE        = "(^$)"
-COMPATIBLE_MACHINE:imxgpu = "(mx8)"
-COMPATIBLE_MACHINE:mx8mm  = "(^$)"
+COMPATIBLE_MACHINE:imxgpu = "(mx8-nxp-bsp)"
+COMPATIBLE_MACHINE:mx8mm-nxp-bsp  = "(^$)"

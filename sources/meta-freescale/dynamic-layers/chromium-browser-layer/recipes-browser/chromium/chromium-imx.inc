@@ -14,7 +14,7 @@ CHROMIUM_IMX_COMMON_PATCHES ?= " "
 CHROMIUM_IMX_VPU_PATCHES ?= " "
 CHROMIUM_IMX_WAYLAND_PATCHES ?= " "
 
-SRC_URI += "git://github.com/Freescale/chromium-imx.git;destsuffix=${CHROMIUM_IMX_DESTSUFFIX};branch=${CHROMIUM_IMX_BRANCH};rev=${CHROMIUM_IMX_SRCREV}"
+SRC_URI += "git://github.com/Freescale/chromium-imx.git;destsuffix=${CHROMIUM_IMX_DESTSUFFIX};branch=${CHROMIUM_IMX_BRANCH};rev=${CHROMIUM_IMX_SRCREV};protocol=https"
 
 do_unpack[postfuncs] += "copy_chromium_imx_files"
 # using =+ instead of += to make sure add_chromium_imx_patches is
@@ -41,4 +41,4 @@ python add_chromium_imx_patches() {
     d.appendVar('OZONE_WAYLAND_EXTRA_PATCHES', ' ' + d.getVar('CHROMIUM_IMX_WAYLAND_PATCHES', 1))
 }
 
-COMPATIBLE_MACHINE = "(mx6)"
+COMPATIBLE_MACHINE = "(mx6-nxp-bsp)"

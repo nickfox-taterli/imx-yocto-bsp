@@ -15,6 +15,7 @@ BUILD_CXX:class-nativesdk = "clang++"
 BUILD_AR:class-nativesdk = "llvm-ar"
 BUILD_RANLIB:class-nativesdk = "llvm-ranlib"
 BUILD_NM:class-nativesdk = "llvm-nm"
+LDFLAGS:remove:class-nativesdk = "-fuse-ld=lld"
 
 inherit cmake cmake-native pkgconfig python3native
 
@@ -68,6 +69,7 @@ PACKAGECONFIG[shared-libs] = "-DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=
 PACKAGECONFIG[terminfo] = "-DLLVM_ENABLE_TERMINFO=ON -DCOMPILER_RT_TERMINFO_LIB=ON,-DLLVM_ENABLE_TERMINFO=OFF -DCOMPILER_RT_TERMINFO_LIB=OFF,ncurses,"
 PACKAGECONFIG[pfm] = "-DLLVM_ENABLE_LIBPFM=ON,-DLLVM_ENABLE_LIBPFM=OFF,libpfm,"
 PACKAGECONFIG[lldb-wchar] = "-DLLDB_EDITLINE_USE_WCHAR=1,-DLLDB_EDITLINE_USE_WCHAR=0,"
+PACKAGECONFIG[lldb-lua] = "-DLLDB_ENABLE_LUA=ON,-DLLDB_ENABLE_LUA=OFF,lua"
 PACKAGECONFIG[bootstrap] = "-DCLANG_ENABLE_BOOTSTRAP=On -DCLANG_BOOTSTRAP_PASSTHROUGH='${PASSTHROUGH}' -DBOOTSTRAP_LLVM_ENABLE_LTO=Thin -DBOOTSTRAP_LLVM_ENABLE_LLD=ON,,,"
 PACKAGECONFIG[eh] = "-DLLVM_ENABLE_EH=ON,-DLLVM_ENABLE_EH=OFF,,"
 PACKAGECONFIG[rtti] = "-DLLVM_ENABLE_RTTI=ON,-DLLVM_ENABLE_RTTI=OFF,,"
@@ -88,8 +90,8 @@ LLVM_ENABLE_RTTI;LLVM_ENABLE_EH;LLVM_BUILD_EXTERNAL_COMPILER_RT;CMAKE_SYSTEM_NAM
 CMAKE_BUILD_TYPE;BUILD_SHARED_LIBS;LLVM_ENABLE_PROJECTS;LLVM_BINUTILS_INCDIR;\
 LLVM_TARGETS_TO_BUILD;LLVM_EXPERIMENTAL_TARGETS_TO_BUILD;PYTHON_EXECUTABLE;\
 PYTHON_LIBRARY;PYTHON_INCLUDE_DIR;LLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN;LLDB_EDITLINE_USE_WCHAR;\
-LLVM_ENABLE_LIBEDIT;LLDB_ENABLE_LIBEDIT;LLDB_PYTHON_RELATIVE_PATH;\
-CMAKE_C_FLAGS_RELEASE;CMAKE_CXX_FLAGS_RELEASE;CMAKE_ASM_FLAGS_RELEASE;\
+LLVM_ENABLE_LIBEDIT;LLDB_ENABLE_LIBEDIT;LLDB_PYTHON_RELATIVE_PATH;LLDB_PYTHON_EXE_RELATIVE_PATH;\
+LLDB_PYTHON_EXT_SUFFIX;CMAKE_C_FLAGS_RELEASE;CMAKE_CXX_FLAGS_RELEASE;CMAKE_ASM_FLAGS_RELEASE;\
 CLANG_DEFAULT_CXX_STDLIB;CLANG_DEFAULT_RTLIB;CLANG_DEFAULT_UNWINDLIB;\
 CLANG_DEFAULT_OPENMP_RUNTIME;\
 "
@@ -113,12 +115,17 @@ LLDB:riscv32 = ""
 LLDB:riscv64 = ""
 LLDB:mips = ""
 LLDB:mipsel = ""
+LLDB:powerpc = ""
+
+# linux hosts (.so) on Windows .pyd
+SOLIBSDEV:mingw32 = ".pyd"
 
 #CMAKE_VERBOSE = "VERBOSE=1"
 
 EXTRA_OECMAKE += "-DLLVM_ENABLE_ASSERTIONS=OFF \
                   -DLLVM_ENABLE_EXPENSIVE_CHECKS=OFF \
                   -DLLVM_ENABLE_PIC=ON \
+                  -DCLANG_DEFAULT_PIE_ON_LINUX=ON \
                   -DLLVM_BINDINGS_LIST='' \
                   -DLLVM_ENABLE_FFI=ON \
                   -DFFI_INCLUDE_DIR=$(pkg-config --variable=includedir libffi) \
@@ -141,7 +148,10 @@ EXTRA_OECMAKE:append:class-native = "\
 "
 EXTRA_OECMAKE:append:class-nativesdk = "\
                   -DCMAKE_CROSSCOMPILING:BOOL=ON \
-                  -DCROSS_TOOLCHAIN_FLAGS_NATIVE='-DLLDB_PYTHON_RELATIVE_PATH=${PYTHON_SITEPACKAGES_DIR} -DCMAKE_TOOLCHAIN_FILE=${WORKDIR}/toolchain-native.cmake' \
+                  -DCROSS_TOOLCHAIN_FLAGS_NATIVE='-DLLDB_PYTHON_RELATIVE_PATH=${PYTHON_SITEPACKAGES_DIR} \
+                                                  -DLLDB_PYTHON_EXE_RELATIVE_PATH=${PYTHON} \
+                                                  -DLLDB_PYTHON_EXT_SUFFIX=${SOLIBSDEV} \
+                                                  -DCMAKE_TOOLCHAIN_FILE=${WORKDIR}/toolchain-native.cmake' \
                   -DCMAKE_RANLIB=${STAGING_BINDIR_TOOLCHAIN}/${TARGET_PREFIX}llvm-ranlib \
                   -DCMAKE_AR=${STAGING_BINDIR_TOOLCHAIN}/${TARGET_PREFIX}llvm-ar \
                   -DCMAKE_NM=${STAGING_BINDIR_TOOLCHAIN}/${TARGET_PREFIX}llvm-nm \
@@ -151,12 +161,16 @@ EXTRA_OECMAKE:append:class-nativesdk = "\
                   -DLLDB_TABLEGEN=${STAGING_BINDIR_NATIVE}/lldb-tblgen \
                   -DPYTHON_LIBRARY=${STAGING_LIBDIR}/lib${PYTHON_DIR}${PYTHON_ABI}.so \
                   -DLLDB_PYTHON_RELATIVE_PATH=${PYTHON_SITEPACKAGES_DIR} \
+                  -DLLDB_PYTHON_EXE_RELATIVE_PATH=${PYTHON} \
+                  -DLLDB_PYTHON_EXT_SUFFIX=${SOLIBSDEV} \
                   -DPYTHON_INCLUDE_DIR=${STAGING_INCDIR}/${PYTHON_DIR}${PYTHON_ABI} \
                   -DPYTHON_EXECUTABLE='${PYTHON}' \
 "
 EXTRA_OECMAKE:append:class-target = "\
                   -DCMAKE_CROSSCOMPILING:BOOL=ON \
-                  -DCROSS_TOOLCHAIN_FLAGS_NATIVE='-DLLDB_PYTHON_RELATIVE_PATH=${PYTHON_SITEPACKAGES_DIR}' \
+                  -DCROSS_TOOLCHAIN_FLAGS_NATIVE='-DLLDB_PYTHON_RELATIVE_PATH=${PYTHON_SITEPACKAGES_DIR} \
+                                                  -DLLDB_PYTHON_EXT_SUFFIX=${SOLIBSDEV} \
+                                                  -DLLDB_PYTHON_EXE_RELATIVE_PATH=${PYTHON}' \
                   -DLLVM_TABLEGEN=${STAGING_BINDIR_NATIVE}/llvm-tblgen \
                   -DCLANG_TABLEGEN=${STAGING_BINDIR_NATIVE}/clang-tblgen \
                   -DLLDB_TABLEGEN=${STAGING_BINDIR_NATIVE}/lldb-tblgen \
@@ -168,6 +182,8 @@ EXTRA_OECMAKE:append:class-target = "\
                   -DLLVM_DEFAULT_TARGET_TRIPLE=${TARGET_SYS}${HF} \
                   -DLLVM_HOST_TRIPLE=${TARGET_SYS}${HF} \
                   -DLLDB_PYTHON_RELATIVE_PATH=${PYTHON_SITEPACKAGES_DIR} \
+                  -DLLDB_PYTHON_EXE_RELATIVE_PATH=${PYTHON} \
+                  -DLLDB_PYTHON_EXT_SUFFIX=${SOLIBSDEV} \
                   -DPYTHON_LIBRARY=${STAGING_LIBDIR}/lib${PYTHON_DIR}${PYTHON_ABI}.so \
                   -DPYTHON_INCLUDE_DIR=${STAGING_INCDIR}/${PYTHON_DIR}${PYTHON_ABI} \
                   -DLLVM_LIBDIR_SUFFIX=${@d.getVar('baselib').replace('lib', '')} \
@@ -200,10 +216,11 @@ endif()\n" ${D}${libdir}/cmake/llvm/LLVMExports-release.cmake
     if [ -n "${LLVM_LIBDIR_SUFFIX}" ]; then
         mkdir -p ${D}${nonarch_libdir}
         mv ${D}${libdir}/clang ${D}${nonarch_libdir}/clang
-        lnr ${D}${nonarch_libdir}/clang ${D}${libdir}/clang
+        ln -rs ${D}${nonarch_libdir}/clang ${D}${libdir}/clang
         rmdir --ignore-fail-on-non-empty ${D}${libdir}
     fi
-    for t in clang clang++ llvm-nm llvm-ar llvm-as llvm-ranlib llvm-strip; do
+    for t in clang clang++ llvm-nm llvm-ar llvm-as llvm-ranlib llvm-strip llvm-objcopy llvm-objdump llvm-readelf \
+        llvm-addr2line llvm-dwp llvm-size llvm-strings llvm-cov; do
         ln -sf $t ${D}${bindir}/${TARGET_PREFIX}$t
     done
 }

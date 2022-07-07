@@ -31,7 +31,7 @@ BUILDHISTORY_DIR_PACKAGE = "${BUILDHISTORY_DIR}/packages/${MULTIMACH_TARGET_SYS}
 # of failed builds.
 #
 # The expected usage is via auto.conf, but passing via the command line also works
-# with: BB_ENV_EXTRAWHITE=BUILDHISTORY_RESET BUILDHISTORY_RESET=1
+# with: BB_ENV_PASSTHROUGH_ADDITIONS=BUILDHISTORY_RESET BUILDHISTORY_RESET=1
 BUILDHISTORY_RESET ?= ""
 
 BUILDHISTORY_OLD_DIR = "${BUILDHISTORY_DIR}/${@ "old" if "${BUILDHISTORY_RESET}" else ""}"
@@ -91,11 +91,17 @@ buildhistory_emit_sysroot() {
 python buildhistory_emit_pkghistory() {
     if d.getVar('BB_CURRENTTASK') in ['populate_sysroot', 'populate_sysroot_setscene']:
         bb.build.exec_func("buildhistory_emit_sysroot", d)
-
-    if not d.getVar('BB_CURRENTTASK') in ['packagedata', 'packagedata_setscene']:
         return 0
 
     if not "package" in (d.getVar('BUILDHISTORY_FEATURES') or "").split():
+        return 0
+
+    if d.getVar('BB_CURRENTTASK') in ['package', 'package_setscene']:
+        # Create files-in-<package-name>.txt files containing a list of files of each recipe's package
+        bb.build.exec_func("buildhistory_list_pkg_files", d)
+        return 0
+
+    if not d.getVar('BB_CURRENTTASK') in ['packagedata', 'packagedata_setscene']:
         return 0
 
     import re
@@ -287,7 +293,7 @@ python buildhistory_emit_pkghistory() {
             r = bb.utils.vercmp((pkge, pkgv, pkgr), (last_pkge, last_pkgv, last_pkgr))
             if r < 0:
                 msg = "Package version for package %s went backwards which would break package feeds (from %s:%s-%s to %s:%s-%s)" % (pkg, last_pkge, last_pkgv, last_pkgr, pkge, pkgv, pkgr)
-                package_qa_handle_error("version-going-backwards", msg, d)
+                oe.qa.handle_error("version-going-backwards", msg, d)
 
         pkginfo = PackageInfo(pkg)
         # Apparently the version can be different on a per-package basis (see Python)
@@ -319,8 +325,7 @@ python buildhistory_emit_pkghistory() {
 
         write_pkghistory(pkginfo, d)
 
-    # Create files-in-<package-name>.txt files containing a list of files of each recipe's package
-    bb.build.exec_func("buildhistory_list_pkg_files", d)
+    oe.qa.exit_if_errors(d)
 }
 
 python buildhistory_emit_outputsigs() {
@@ -787,8 +792,8 @@ def buildhistory_get_sdkvars(d):
     sdkvars = "DISTRO DISTRO_VERSION SDK_NAME SDK_VERSION SDKMACHINE SDKIMAGE_FEATURES TOOLCHAIN_HOST_TASK TOOLCHAIN_TARGET_TASK BAD_RECOMMENDATIONS NO_RECOMMENDATIONS PACKAGE_EXCLUDE"
     if d.getVar('BB_CURRENTTASK') == 'populate_sdk_ext':
         # Extensible SDK uses some additional variables
-        sdkvars += " SDK_LOCAL_CONF_WHITELIST SDK_LOCAL_CONF_BLACKLIST SDK_INHERIT_BLACKLIST SDK_UPDATE_URL SDK_EXT_TYPE SDK_RECRDEP_TASKS SDK_INCLUDE_PKGDATA SDK_INCLUDE_TOOLCHAIN"
-    listvars = "SDKIMAGE_FEATURES BAD_RECOMMENDATIONS PACKAGE_EXCLUDE SDK_LOCAL_CONF_WHITELIST SDK_LOCAL_CONF_BLACKLIST SDK_INHERIT_BLACKLIST"
+        sdkvars += " ESDK_LOCALCONF_ALLOW ESDK_LOCALCONF_REMOVE ESDK_CLASS_INHERIT_DISABLE SDK_UPDATE_URL SDK_EXT_TYPE SDK_RECRDEP_TASKS SDK_INCLUDE_PKGDATA SDK_INCLUDE_TOOLCHAIN"
+    listvars = "SDKIMAGE_FEATURES BAD_RECOMMENDATIONS PACKAGE_EXCLUDE ESDK_LOCALCONF_ALLOW ESDK_LOCALCONF_REMOVE ESDK_CLASS_INHERIT_DISABLE"
     return outputvars(sdkvars, listvars, d)
 
 
@@ -891,6 +896,7 @@ python buildhistory_eventhandler() {
                 if os.path.isdir(olddir):
                     shutil.rmtree(olddir)
                 rootdir = e.data.getVar("BUILDHISTORY_DIR")
+                bb.utils.mkdirhier(rootdir)
                 entries = [ x for x in os.listdir(rootdir) if not x.startswith('.') ]
                 bb.utils.mkdirhier(olddir)
                 for entry in entries:
@@ -933,22 +939,12 @@ def _get_srcrev_values(d):
         if urldata[u].method.supports_srcrev():
             scms.append(u)
 
-    autoinc_templ = 'AUTOINC+'
     dict_srcrevs = {}
     dict_tag_srcrevs = {}
     for scm in scms:
         ud = urldata[scm]
         for name in ud.names:
-            try:
-                rev = ud.method.sortable_revision(ud, d, name)
-            except TypeError:
-                # support old bitbake versions
-                rev = ud.method.sortable_revision(scm, ud, d, name)
-            # Clean this up when we next bump bitbake version
-            if type(rev) != str:
-                autoinc, rev = rev
-            elif rev.startswith(autoinc_templ):
-                rev = rev[len(autoinc_templ):]
+            autoinc, rev = ud.method.sortable_revision(ud, d, name)
             dict_srcrevs[name] = rev
             if 'tag' in ud.parm:
                 tag = ud.parm['tag'];

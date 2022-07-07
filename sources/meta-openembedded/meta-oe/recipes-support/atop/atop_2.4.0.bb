@@ -10,7 +10,7 @@ utilization, priority, username, state, and exit code."
 HOMEPAGE = "http://www.atoptool.nl"
 SECTION = "console/utils"
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=393a5ca445f6965873eca0259a17f833"
 
 DEPENDS = "ncurses zlib"
@@ -41,6 +41,10 @@ do_install() {
         install -m 644 ${WORKDIR}/volatiles.99_atop ${D}${sysconfdir}/default/volatiles/99_atop
         rm -f ${D}${sysconfdir}/init.d/atopacct
     fi
+
+    # /var/log/atop will be created in runtime
+    rm -rf ${D}${localstatedir}/log
+    rmdir --ignore-fail-on-non-empty ${D}${localstatedir}
 
     # remove atopacct related files
     rm -rf ${D}${sbindir} ${D}${mandir}/man8

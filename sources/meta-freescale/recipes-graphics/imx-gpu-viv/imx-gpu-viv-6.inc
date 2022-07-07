@@ -6,7 +6,7 @@
 DESCRIPTION = "GPU driver and apps for i.MX"
 SECTION = "libs"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://COPYING;md5=e565271ec9a80ce47abbddc4bffe56fa"
+LIC_FILES_CHKSUM = "file://COPYING;md5=03bcadc8dc0a788f66ca9e2b89f56c6f"
 
 DEPENDS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', \
@@ -18,7 +18,7 @@ DEPENDS += " \
                                                        '', d)} \
 "
 DEPENDS:append:imxdrm = " libdrm wayland"
-DEPENDS:append:mx8 = " patchelf-native"
+DEPENDS:append:mx8-nxp-bsp = " patchelf-native"
 
 # imx-gpu-viv does not provide everything it needs to for virtual/libgl
 # on x11 backend or on Wayland backend with XWayland support.
@@ -31,12 +31,12 @@ EXTRA_PROVIDES:append:imxgpu3d = " \
     virtual/libgles1 \
     virtual/libgles2 \
 "
-EXTRA_PROVIDES:append:mx8 = " \
+EXTRA_PROVIDES:append:mx8-nxp-bsp = " \
     virtual/libgbm \
 "
 PROVIDES_OPENVX       = ""
-PROVIDES_OPENVX:mx8   = "virtual/libopenvx"
-PROVIDES_OPENVX:mx8mm = ""
+PROVIDES_OPENVX:mx8-nxp-bsp   = "virtual/libopenvx"
+PROVIDES_OPENVX:mx8mm-nxp-bsp = ""
 PROVIDES += " \
     imx-gpu-viv \
     libgal-imx \
@@ -56,7 +56,7 @@ PE = "1"
 
 inherit fsl-eula-unpack features_check
 
-REQUIRED_DISTRO_FEATURES:mx8 = "wayland"
+REQUIRED_DISTRO_FEATURES:mx8-nxp-bsp = "wayland"
 
 SRC_URI = "${FSL_MIRROR}/${BPN}-${PV}.bin;fsl-eula=true"
 
@@ -67,7 +67,7 @@ PACKAGECONFIG[valgrind] = ""
 
 # Note : If you add a package here, to prevent a naming conflict see the python_anonymous() futher below
 IMX_PACKAGES_GBM     = ""
-IMX_PACKAGES_GBM:mx8 = "libgbm-imx libgbm-imx-dev"
+IMX_PACKAGES_GBM:mx8-nxp-bsp = "libgbm-imx libgbm-imx-dev"
 PACKAGES =+ "libclc-imx libclc-imx-dev \
 	libgl-imx libgl-imx-dev \
 	libgles1-imx libgles1-imx-dev \
@@ -79,7 +79,6 @@ PACKAGES =+ "libclc-imx libclc-imx-dev \
 	libvdk-imx libvdk-imx-dev \
 	libegl-imx libegl-imx-dev \
 	libgal-imx libgal-imx-dev \
-	libvivante-dri-imx \
 	libvsc-imx \
 	${IMX_PACKAGES_GBM} \
 	imx-gpu-viv-tools \
@@ -94,8 +93,7 @@ python __anonymous () {
                 raise bb.parse.SkipPackage('The kernel of machine needs to have Vivante kernel driver support for this recipe to be used.')
 }
 
-USE_X11 = "${@bb.utils.contains("DISTRO_FEATURES", "x11", "yes", "no", d)}"
-USE_WL = "${@bb.utils.contains("DISTRO_FEATURES", "wayland", "yes", "no", d)}"
+BACKEND = "${@bb.utils.contains("DISTRO_FEATURES", "wayland", "wayland", "fb", d)}"
 
 # The packaged binaries have been stripped of debug info, so disable
 # operations accordingly.
@@ -137,23 +135,24 @@ python __anonymous() {
 }
 
 IS_MX6SL = "0"
-IS_MX6SL:mx6sl = "1"
+IS_MX6SL:mx6sl-nxp-bsp = "1"
 
 IS_MX8 = "0"
-IS_MX8:mx8 = "1"
+IS_MX8:mx8-nxp-bsp = "1"
 
 PACKAGE_FP_TYPE = "hardfp"
 
 HAS_GBM     = "false"
-HAS_GBM:mx8 = "true"
+HAS_GBM:mx8-nxp-bsp = "true"
 
 IMX_SOC        = "IMX_SOC_NOT_SET"
-IMX_SOC:mx8qm  = "mx8qm"
-IMX_SOC:mx8mp  = "mx8mp"
-IMX_SOC:mx8mq  = "mx8mq"
-IMX_SOC:mx8qxp = "mx8qxp"
-IMX_SOC:mx8mn  = "mx8mn"
-IMX_SOC:mx8ulp = "mx8ulp"
+IMX_SOC:mx8qm-nxp-bsp  = "mx8qm"
+IMX_SOC:mx8qxp-nxp-bsp = "mx8qxp"
+IMX_SOC:mx8dx-nxp-bsp  = "mx8qxp"
+IMX_SOC:mx8mp-nxp-bsp  = "mx8mp"
+IMX_SOC:mx8mq-nxp-bsp  = "mx8mq"
+IMX_SOC:mx8mn-nxp-bsp  = "mx8mn"
+IMX_SOC:mx8ulp-nxp-bsp = "mx8ulp"
 
 LIBVULKAN_VERSION_MAJOR = "1"
 LIBVULKAN_VERSION = "${LIBVULKAN_VERSION_MAJOR}.1.6"
@@ -180,44 +179,16 @@ do_install () {
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/gbm.pc ${D}${libdir}/pkgconfig/gbm.pc
     fi
 
-    # The preference order, based in DISTRO_FEATURES, is Wayland (with or without X11), X11 and fb
-    if [ "${USE_WL}" = "yes" ]; then
-
-        backend=wayland
-
+    if [ "${BACKEND}" = "wayland" ]; then
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/egl_wayland.pc ${D}${libdir}/pkgconfig/egl.pc
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/glesv1_cm.pc ${D}${libdir}/pkgconfig/glesv1_cm.pc
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/glesv2.pc ${D}${libdir}/pkgconfig/glesv2.pc
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/vg.pc ${D}${libdir}/pkgconfig/vg.pc
-
-       if [ "${USE_X11}" = "yes" ]; then
-
-        cp -r ${S}/gpu-core/usr/lib/dri ${D}${libdir}
-
-       fi
-
-    elif [ "${USE_X11}" = "yes" ]; then
-
-        cp -r ${S}/gpu-core/usr/lib/dri ${D}${libdir}
-
-        backend=x11
-
-        install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/gl_x11.pc ${D}${libdir}/pkgconfig/gl.pc
-        install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/egl_x11.pc ${D}${libdir}/pkgconfig/egl.pc
-        install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/glesv1_cm_x11.pc ${D}${libdir}/pkgconfig/glesv1_cm.pc
-        install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/glesv2_x11.pc ${D}${libdir}/pkgconfig/glesv2.pc
-        install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/vg_x11.pc ${D}${libdir}/pkgconfig/vg.pc
-
     else
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/glesv1_cm.pc ${D}${libdir}/pkgconfig/glesv1_cm.pc
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/glesv2.pc ${D}${libdir}/pkgconfig/glesv2.pc
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/vg.pc ${D}${libdir}/pkgconfig/vg.pc
-
-        # Regular framebuffer
         install -m 0644 ${S}/gpu-core/usr/lib/pkgconfig/egl_linuxfb.pc ${D}${libdir}/pkgconfig/egl.pc
-
-        backend=fb
-
     fi
 
     # Install Vendor ICDs for OpenCL's installable client driver loader (ICDs Loader)
@@ -225,8 +196,8 @@ do_install () {
     install -m 0644 ${S}/gpu-core/etc/Vivante.icd ${D}${sysconfdir}/OpenCL/vendors/Vivante.icd
 
     # Handle backend specific drivers
-    cp -r ${S}/gpu-core/usr/lib/${backend}/* ${D}${libdir}
-    if [ "${USE_WL}" = "yes" ]; then
+    cp -r ${S}/gpu-core/usr/lib/${BACKEND}/* ${D}${libdir}
+    if [ "${BACKEND}" = "wayland" ] && [ "${IS_MX8}" != "1" ]; then
         # Special case for libVDK on Wayland backend, deliver fb library as well.
         cp ${S}/gpu-core/usr/lib/fb/libVDK.so.1.2.0 ${D}${libdir}/libVDK-fb.so.1.2.0
     fi
@@ -287,9 +258,9 @@ INSANE_SKIP:libgal-imx += "build-deps"
 
 FILES:libvsc-imx = "${libdir}/libVSC${SOLIBS}"
 
-FILES:libgbm-imx:mx8           = "${libdir}/libgbm*${REALSOLIBS} ${libdir}/libgbm${SOLIBSDEV} ${libdir}/libgbm_viv${SOLIBSDEV}"
-FILES:libgbm-imx-dev:mx8       = "${libdir}/pkgconfig/gbm.pc ${includedir}/gbm.h"
-RDEPENDS:libgbm-imx:append:mx8 = " libdrm"
+FILES:libgbm-imx:mx8-nxp-bsp           = "${libdir}/libgbm*${REALSOLIBS} ${libdir}/libgbm${SOLIBSDEV} ${libdir}/libgbm_viv${SOLIBSDEV}"
+FILES:libgbm-imx-dev:mx8-nxp-bsp       = "${libdir}/pkgconfig/gbm.pc ${includedir}/gbm.h"
+RDEPENDS:libgbm-imx:append:mx8-nxp-bsp = " libdrm"
 INSANE_SKIP:libgbm-imx += "dev-so"
 
 FILES:libvulkan-imx = "${libdir}/libvulkan_VSI${REALSOLIBS} ${libdir}/libSPIRV_viv${SOLIBS}"
@@ -346,14 +317,9 @@ FILES:libopenvg-imx-dev = "${includedir}/VG ${libdir}/libOpenVG*${SOLIBSDEV} ${l
 FILES:libvdk-imx = "${libdir}/libVDK*${REALSOLIBS}"
 FILES:libvdk-imx-dev = "${includedir}/*vdk*.h ${libdir}/libVDK${SOLIBSDEV}"
 
-FILES:libvivante-dri-imx = "${libdir}/dri/vivante_dri.so"
-RDEPENDS:libvivante-dri-imx = "libdrm"
-
 FILES:imx-gpu-viv-tools = "${bindir}/gmem_info"
 
 FILES:imx-gpu-viv-demos = "/opt"
 INSANE_SKIP:imx-gpu-viv-demos += "rpaths dev-deps"
 
 FILES:libnn-imx = "${libdir}/libNN*${SOLIBS}"
-
-# COMPATIBLE_MACHINE = "(mx6q|mx6dl|mx6sx|mx6sl|mx8)"

@@ -1,15 +1,15 @@
 SUMMARY = "A text-based user interface plugin of dnf for user to manage packages. "
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "git://github.com/ubinux/dnf-plugin-tui.git;branch=master;protocol=https"
-SRCREV = "b0d80b7129f1d84cc563a4098d869e7420bcf4bc"
+SRCREV = "7c45fd65dcd811def66161f6d572c3930f2ba4d8"
 PV = "1.3"
 
 SRC_URI:append:class-target = " file://oe-remote.repo.sample"
 
-inherit distutils3-base
+inherit setuptools3-base
 
 S = "${WORKDIR}/git"
 
@@ -37,4 +37,4 @@ RDEPENDS:${PN} += " \
 "
 
 BBCLASSEXTEND = "nativesdk"
-PNBLACKLIST[dnf-plugin-tui] ?= "${@bb.utils.contains('PACKAGE_CLASSES', 'package_rpm', '', 'does not build correctly without package_rpm in PACKAGE_CLASSES', d)}"
+SKIP_RECIPE[dnf-plugin-tui] ?= "${@bb.utils.contains('PACKAGE_CLASSES', 'package_rpm', '', 'does not build correctly without package_rpm in PACKAGE_CLASSES', d)}"

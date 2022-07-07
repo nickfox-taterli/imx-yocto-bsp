@@ -44,13 +44,13 @@ IPP_FILENAME = "${@ipp_filename(d)}"
 IPP_MD5 = "${@ipp_md5sum(d)}"
 
 SRCREV_FORMAT = "opencv_contrib_ipp_boostdesc_vgg"
-SRC_URI = "git://github.com/opencv/opencv.git;name=opencv \
-           git://github.com/opencv/opencv_contrib.git;destsuffix=contrib;name=contrib \
-           git://github.com/opencv/opencv_3rdparty.git;branch=ippicv/master_20191018;destsuffix=ipp;name=ipp \
-           git://github.com/opencv/opencv_3rdparty.git;branch=contrib_xfeatures2d_boostdesc_20161012;destsuffix=boostdesc;name=boostdesc \
-           git://github.com/opencv/opencv_3rdparty.git;branch=contrib_xfeatures2d_vgg_20160317;destsuffix=vgg;name=vgg \
-           git://github.com/opencv/opencv_3rdparty.git;branch=contrib_face_alignment_20170818;destsuffix=face;name=face \
-           git://github.com/WeChatCV/opencv_3rdparty.git;branch=wechat_qrcode;destsuffix=wechat_qrcode;name=wechat-qrcode \
+SRC_URI = "git://github.com/opencv/opencv.git;name=opencv;branch=master;protocol=https \
+           git://github.com/opencv/opencv_contrib.git;destsuffix=contrib;name=contrib;branch=master;protocol=https \
+           git://github.com/opencv/opencv_3rdparty.git;branch=ippicv/master_20191018;destsuffix=ipp;name=ipp;protocol=https \
+           git://github.com/opencv/opencv_3rdparty.git;branch=contrib_xfeatures2d_boostdesc_20161012;destsuffix=boostdesc;name=boostdesc;protocol=https \
+           git://github.com/opencv/opencv_3rdparty.git;branch=contrib_xfeatures2d_vgg_20160317;destsuffix=vgg;name=vgg;protocol=https \
+           git://github.com/opencv/opencv_3rdparty.git;branch=contrib_face_alignment_20170818;destsuffix=face;name=face;protocol=https \
+           git://github.com/WeChatCV/opencv_3rdparty.git;branch=wechat_qrcode;destsuffix=wechat_qrcode;name=wechat-qrcode;protocol=https \
            file://0001-3rdparty-ippicv-Use-pre-downloaded-ipp.patch \
            file://0003-To-fix-errors-as-following.patch \
            file://0001-Temporarliy-work-around-deprecated-ffmpeg-RAW-functi.patch \
@@ -111,7 +111,7 @@ EXTRA_OECMAKE:append:x86 = " -DX86=ON"
 
 PACKAGECONFIG ??= "gapi python3 eigen jpeg png tiff v4l libv4l gstreamer samples tbb gphoto2 \
     ${@bb.utils.contains("DISTRO_FEATURES", "x11", "gtk", "", d)} \
-    ${@bb.utils.contains("LICENSE_FLAGS_WHITELIST", "commercial", "libav", "", d)}"
+    ${@bb.utils.contains("LICENSE_FLAGS_ACCEPTED", "commercial", "libav", "", d)}"
 
 # TBB does not build for powerpc so disable that package config
 PACKAGECONFIG:remove:powerpc = "tbb"
@@ -147,7 +147,7 @@ PACKAGECONFIG[v4l] = "-DWITH_V4L=ON,-DWITH_V4L=OFF,v4l-utils,"
 
 inherit pkgconfig cmake
 
-inherit ${@bb.utils.contains('PACKAGECONFIG', 'python3', 'distutils3-base', '', d)}
+inherit ${@bb.utils.contains('PACKAGECONFIG', 'python3', 'setuptools3-base', '', d)}
 inherit ${@bb.utils.contains('PACKAGECONFIG', 'python2', 'distutils-base', '', d)}
 
 export PYTHON_CSPEC="-I${STAGING_INCDIR}/${PYTHON_DIR}"
@@ -252,44 +252,36 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
 # Replace the opencv URL with the fork
 SRCREV_opencv = "5423d53ae0d116ee5bbe52f8b5503f0cd8586998"
-OPENCV_SRC ?= "git://source.codeaurora.org/external/imx/opencv-imx.git;protocol=https"
+OPENCV_SRC ?= "git://source.codeaurora.org/external/imx/opencv-imx.git;protocol=https;branch=master"
 SRCBRANCH = "4.5.2_imx"
-SRC_URI:remove = "git://github.com/opencv/opencv.git;name=opencv"
+SRC_URI:remove = "git://github.com/opencv/opencv.git;name=opencv;branch=master;protocol=https"
 SRC_URI =+ "${OPENCV_SRC};branch=${SRCBRANCH};name=opencv"
 
 # Add opencv_extra
 SRCREV_extra = "855c4528402e563283f86f28c6393f57eb5dcf62"
 SRC_URI += " \
-    git://github.com/opencv/opencv_extra.git;destsuffix=extra;name=extra \
+    git://github.com/opencv/opencv_extra.git;destsuffix=extra;name=extra;branch=master;protocol=https \
     file://0001-Add-smaller-version-of-download_models.py.patch;patchdir=../extra \
 "
 SRCREV_FORMAT:append = "_extra"
 
-# Add tiny-dnn
-SRC_URI[tinydnn.md5sum] = "adb1c512e09ca2c7a6faef36f9c53e59"
-SRC_URI[tinydnn.sha256sum] = "e2c61ce8c5debaa644121179e9dbdcf83f497f39de853f8dd5175846505aa18b"
+# Patch DNN example
 SRC_URI += " \
-    https://github.com/tiny-dnn/tiny-dnn/archive/v1.0.0a3.tar.gz;destsuffix=git/3rdparty/tinydnn/tiny-dnn-1.0.0a3;name=tinydnn;unpack=false \
     file://OpenCV_DNN_examples.patch \
 "
 
 PACKAGECONFIG:remove        = "eigen"
-PACKAGECONFIG:append:mx8    = " dnn text"
+PACKAGECONFIG:append:mx8-nxp-bsp    = " dnn text"
 PACKAGECONFIG_OPENCL        = ""
-PACKAGECONFIG_OPENCL:mx8    = "opencl"
-PACKAGECONFIG_OPENCL:mx8dxl = ""
-PACKAGECONFIG_OPENCL:mx8mm  = ""
-PACKAGECONFIG_OPENCL:mx8mnlite  = ""
+PACKAGECONFIG_OPENCL:mx8-nxp-bsp    = "opencl"
+PACKAGECONFIG_OPENCL:mx8dxl-nxp-bsp = ""
+PACKAGECONFIG_OPENCL:mx8mm-nxp-bsp  = ""
+PACKAGECONFIG_OPENCL:mx8mnlite-nxp-bsp  = ""
 PACKAGECONFIG:append        = " ${PACKAGECONFIG_OPENCL}"
 
 PACKAGECONFIG[openvx] = "-DWITH_OPENVX=ON -DOPENVX_ROOT=${STAGING_LIBDIR} -DOPENVX_LIB_CANDIDATES='OpenVX;OpenVXU',-DWITH_OPENVX=OFF,virtual/libopenvx,"
 PACKAGECONFIG[qt5] = "-DWITH_QT=ON -DOE_QMAKE_PATH_EXTERNAL_HOST_BINS=${STAGING_BINDIR_NATIVE} -DCMAKE_PREFIX_PATH=${STAGING_BINDIR_NATIVE}/cmake,-DWITH_QT=OFF,qtbase qtbase-native,"
 PACKAGECONFIG[tests-imx] = "-DINSTALL_TESTS=ON -DOPENCV_TEST_DATA_PATH=${S}/../extra/testdata, -DINSTALL_TESTS=OFF,"
-
-do_unpack_extra:append() {
-    mkdir -p ${S}/3rdparty/tinydnn/
-    tar xzf ${WORKDIR}/v1.0.0a3.tar.gz -C ${S}/3rdparty/tinydnn/
-}
 
 do_install:append() {
     ln -sf opencv4/opencv2 ${D}${includedir}/opencv2
@@ -304,6 +296,6 @@ do_install:append() {
 
 FILES:${PN}-samples += "${datadir}/OpenCV/samples"
 
-COMPATIBLE_MACHINE = "(mx8)"
+COMPATIBLE_MACHINE = "(mx8-nxp-bsp)"
 
 ########## End of i.MX overrides ##########

@@ -6,12 +6,12 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=9c57cfb31165de565a47b65b896391c2"
 DEPENDS = "python3 python3-pip-native python3-wheel-native"
 RDEPENDS:${PN} += "python3-core python3-numpy python3-future python3-typing-extensions"
 
-PV = "1.9.1"
-PYV = "cp39"
+PV = "1.9.1.post2"
+PYV = "cp310"
 
 PYTORCH_SRC ?= "git://github.com/nxpmicro/pytorch-release.git;protocol=https"
-SRCBRANCH = "lf-5.15.5_1.0.0"
-SRCREV = "753daeef9a16f95dc3acb56e5339ccc4fabdef5e" 
+SRCBRANCH = "lf-5.15.32_2.0.0"
+SRCREV = "ef997d8f79877295e69e5cf34b524eea603c1fae"
 
 SRC_URI = " \
     ${PYTORCH_SRC};branch=${SRCBRANCH} \

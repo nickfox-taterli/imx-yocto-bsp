@@ -6,8 +6,6 @@ DISTRO_FEATURES:append = " systemd"
 DISTRO_FEATURES_BACKFILL_CONSIDERED = "sysvinit"
 VIRTUAL-RUNTIME_init_manager = "systemd"
 VIRTUAL-RUNTIME_initscripts = ""
-# use wayland
-DISTRO_FEATURES:append = " wayland"
 
 INHERIT += "buildstats buildstats-summary"
 INHERIT += "rm_work"
@@ -41,8 +39,7 @@ ARM_INSTRUCTION_SET = "${PREFERRED_ARM_INSTRUCTION_SET}"
 
 # enable webengine with commercial/proprietary features
 DISTRO_FEATURES:append = " webengine"
-LICENSE_FLAGS_WHITELIST = "commercial"
-PACKAGECONFIG:append:pn-qtwebengine = " proprietary-codecs ffmpeg"
+PACKAGECONFIG:append:pn-qtwebengine = " proprietary-codecs"
 
 PACKAGECONFIG:append:pn-qtbase = "\
     tslib kms gbm zstd libproxy gssapi vulkan mtdev cups \
@@ -78,7 +75,6 @@ PACKAGECONFIG:append:pn-qtsensors = " examples"
 PACKAGECONFIG:append:pn-qtserialbus = " examples"
 PACKAGECONFIG:append:pn-qtserialport = " examples"
 PACKAGECONFIG:append:pn-qtshadertools = " examples"
-PACKAGECONFIG:append:pn-qtspeech = " examples"
 PACKAGECONFIG:append:pn-qtsvg = " examples"
 PACKAGECONFIG:append:pn-qttools = " examples"
 PACKAGECONFIG:append:pn-qttranslations = " examples"

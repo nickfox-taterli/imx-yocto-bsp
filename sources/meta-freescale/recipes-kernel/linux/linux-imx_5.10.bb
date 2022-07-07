@@ -12,22 +12,22 @@ i.MX Family Reference Boards. It includes support for many IPs such as GPU, VPU 
 
 require recipes-kernel/linux/linux-imx.inc
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 
 DEPENDS += "lzop-native bc-native"
 
 SRCBRANCH = "lf-5.10.y"
-LOCALVERSION = "-5.10.52-2.1.0"
-SRCREV = "a11753a89ec610768301d4070e10b8bd60fde8cd"
+LOCALVERSION = "-5.10.72-2.2.0"
+SRCREV = "a68e31b63f864ff71cd4adb40fbc9e1edc75c250"
 
 # PV is defined in the base in linux-imx.inc file and uses the LINUX_VERSION definition
 # required by kernel-yocto.bbclass.
 #
 # LINUX_VERSION define should match to the kernel version referenced by SRC_URI and
 # should be updated once patchlevel is merged.
-LINUX_VERSION = "5.10.52"
+LINUX_VERSION = "5.10.72"
 
 DEFAULT_PREFERENCE = "1"
 
-COMPATIBLE_MACHINE = "(mx6|mx7|mx8)"
+COMPATIBLE_MACHINE = "(imx-nxp-bsp)"

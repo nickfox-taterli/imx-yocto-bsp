@@ -10,7 +10,7 @@ PROVIDES = "imx-atf"
 PV .= "+git${SRCPV}"
 
 SRCBRANCH = "boundary-imx_5.4.70_2.3.0"
-SRC_URI = "git://github.com/boundarydevices/imx-atf.git;branch=${SRCBRANCH} \
+SRC_URI = "git://github.com/boundarydevices/imx-atf.git;branch=${SRCBRANCH};protocol=https \
 "
 SRCREV = "9f6114fde03ebed6ecc482989a7660adc5a41a9d"
 
@@ -21,10 +21,10 @@ inherit deploy
 BOOT_TOOLS = "imx-boot-tools"
 
 ATF_PLATFORM        ?= "INVALID"
-ATF_PLATFORM:mx8mq   = "imx8mq"
-ATF_PLATFORM:mx8mm   = "imx8mm"
-ATF_PLATFORM:mx8mn   = "imx8mn"
-ATF_PLATFORM:mx8mp   = "imx8mp"
+ATF_PLATFORM:mx8mq-nxp-bsp   = "imx8mq"
+ATF_PLATFORM:mx8mm-nxp-bsp   = "imx8mm"
+ATF_PLATFORM:mx8mn-nxp-bsp   = "imx8mn"
+ATF_PLATFORM:mx8mp-nxp-bsp   = "imx8mp"
 
 EXTRA_OEMAKE += " \
     CROSS_COMPILE="${TARGET_PREFIX}" \

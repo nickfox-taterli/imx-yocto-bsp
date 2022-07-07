@@ -63,8 +63,8 @@ class BitbakeTests(OESelftestTestCase):
 
     def test_warnings_errors(self):
         result = bitbake('-b asdf', ignore_status=True)
-        find_warnings = re.search("Summary: There w.{2,3}? [1-9][0-9]* WARNING messages* shown", result.output)
-        find_errors = re.search("Summary: There w.{2,3}? [1-9][0-9]* ERROR messages* shown", result.output)
+        find_warnings = re.search("Summary: There w.{2,3}? [1-9][0-9]* WARNING messages*", result.output)
+        find_errors = re.search("Summary: There w.{2,3}? [1-9][0-9]* ERROR messages*", result.output)
         self.assertTrue(find_warnings, msg="Did not find the mumber of warnings at the end of the build:\n" + result.output)
         self.assertTrue(find_errors, msg="Did not find the mumber of errors at the end of the build:\n" + result.output)
 
@@ -151,9 +151,6 @@ INHERIT:remove = \"report-error\"
         self.delete_recipeinc('man-db')
         self.assertEqual(result.status, 1, msg="Command succeded when it should have failed. bitbake output: %s" % result.output)
         self.assertIn('Fetcher failure: Unable to find file file://invalid anywhere. The paths that were searched were:', result.output)
-        line = self.getline(result, 'Fetcher failure for URL: \'file://invalid\'. Unable to fetch URL from any source.')
-        self.assertTrue(line and line.startswith("ERROR:"), msg = "\"invalid\" file \
-doesn't exist, yet fetcher didn't report any error. bitbake output: %s" % result.output)
 
     def test_rename_downloaded_file(self):
         # TODO unique dldir instead of using cleanall
@@ -227,12 +224,12 @@ INHERIT:remove = \"report-error\"
         self.assertLess(errorpos,continuepos, msg = "bitbake didn't pass do_fail_task. bitbake output: %s" % result.output)
 
     def test_non_gplv3(self):
-        self.write_config('INCOMPATIBLE_LICENSE = "GPLv3"')
+        self.write_config('INCOMPATIBLE_LICENSE = "GPL-3.0-or-later"')
         result = bitbake('selftest-ed', ignore_status=True)
         self.assertEqual(result.status, 0, "Bitbake failed, exit code %s, output %s" % (result.status, result.output))
         lic_dir = get_bb_var('LICENSE_DIRECTORY')
-        self.assertFalse(os.path.isfile(os.path.join(lic_dir, 'selftest-ed/generic_GPLv3')))
-        self.assertTrue(os.path.isfile(os.path.join(lic_dir, 'selftest-ed/generic_GPLv2')))
+        self.assertFalse(os.path.isfile(os.path.join(lic_dir, 'selftest-ed/generic_GPL-3.0-or-later')))
+        self.assertTrue(os.path.isfile(os.path.join(lic_dir, 'selftest-ed/generic_GPL-2.0-or-later')))
 
     def test_setscene_only(self):
         """ Bitbake option to restore from sstate only within a build (i.e. execute no real tasks, only setscene)"""
@@ -310,8 +307,47 @@ INHERIT:remove = \"report-error\"
         src = get_bb_var("SRC_URI",test_recipe)
         gitscm = re.search("git://", src)
         self.assertFalse(gitscm, "test_git_patchtool pre-condition failed: {} test recipe contains git repo!".format(test_recipe))
-        result = bitbake('man-db -c patch', ignore_status=False)
+        result = bitbake('{} -c patch'.format(test_recipe), ignore_status=False)
         fatal = re.search("fatal: not a git repository (or any of the parent directories)", result.output)
         self.assertFalse(fatal, "Failed to patch using PATCHTOOL=\"git\"")
         self.delete_recipeinc(test_recipe)
-        bitbake('-cclean man-db')
+        bitbake('-cclean {}'.format(test_recipe))
+
+    def test_git_patchtool2(self):
+        """ Test if PATCHTOOL=git works with git repo and doesn't reinitialize it
+        """
+        test_recipe = "gitrepotest"
+        src = get_bb_var("SRC_URI",test_recipe)
+        gitscm = re.search("git://", src)
+        self.assertTrue(gitscm, "test_git_patchtool pre-condition failed: {} test recipe doesn't contains git repo!".format(test_recipe))
+        result = bitbake('{} -c patch'.format(test_recipe), ignore_status=False)
+        srcdir = get_bb_var('S', test_recipe)
+        result = runCmd("git log", cwd = srcdir)
+        self.assertFalse("bitbake_patching_started" in result.output, msg = "Repository has been reinitialized. {}".format(srcdir))
+        self.delete_recipeinc(test_recipe)
+        bitbake('-cclean {}'.format(test_recipe))
+
+
+    def test_git_unpack_nonetwork(self):
+        """
+        Test that a recipe with a floating tag that needs to be resolved upstream doesn't
+        access the network in a patch task run in a separate builld invocation
+        """
+
+        # Enable the recipe to float using a distro override
+        self.write_config("DISTROOVERRIDES .= \":gitunpack-enable-recipe\"")
+
+        bitbake('gitunpackoffline -c fetch')
+        bitbake('gitunpackoffline -c patch')
+
+    def test_git_unpack_nonetwork_fail(self):
+        """
+        Test that a recipe with a floating tag which doesn't call get_srcrev() in the fetcher
+        raises an error when the fetcher is called.
+        """
+
+        # Enable the recipe to float using a distro override
+        self.write_config("DISTROOVERRIDES .= \":gitunpack-enable-recipe\"")
+
+        result = bitbake('gitunpackoffline-fail -c fetch', ignore_status=True)
+        self.assertTrue("Recipe uses a floating tag/branch without a fixed SRCREV" in result.output, msg = "Recipe without PV set to SRCPV should have failed: %s" % result.output)

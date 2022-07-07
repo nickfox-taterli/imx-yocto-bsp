@@ -4,7 +4,7 @@ DESCRIPTION = "A host/service/network monitoring and management system plugins"
 HOMEPAGE = "http://www.nagios-plugins.org"
 SECTION = "console/network"
 PRIORITY = "optional"
-LICENSE = "GPLv3"
+LICENSE = "GPL-3.0-only"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
@@ -18,7 +18,7 @@ S = "${WORKDIR}/${BPN}-${PV}"
 
 inherit autotools gettext
 
-PNBLACKLIST[nagios-plugins] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'webserver', '', 'Depends on nagios-core which depends on apache2 from meta-webserver which is not included', d)}"
+SKIP_RECIPE[nagios-plugins] ?= "${@bb.utils.contains('BBFILE_COLLECTIONS', 'webserver', '', 'Depends on nagios-core which depends on apache2 from meta-webserver which is not included', d)}"
 
 EXTRA_OECONF += "--with-sysroot=${STAGING_DIR_HOST} \
                  --with-nagios-user=${NAGIOS_USER} \

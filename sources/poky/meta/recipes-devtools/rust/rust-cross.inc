@@ -1,6 +1,3 @@
-require rust.inc
-inherit cross
-
 python do_rust_gen_targets () {
     wd = d.getVar('WORKDIR') + '/targets/'
     # It is important 'TARGET' is last here so that it overrides our less
@@ -11,13 +8,15 @@ python do_rust_gen_targets () {
         features = ""
         cpu = "generic"
         arch = d.getVar('{}_ARCH'.format(thing))
+        abi = ""
         if thing is "TARGET":
+            abi = d.getVar('ABIEXTENSION')
             # arm and armv7 have different targets in llvm
             if arch == "arm" and target_is_armv7(d):
                 arch = 'armv7'
             features = d.getVar('TARGET_LLVM_FEATURES') or ""
             cpu = d.getVar('TARGET_LLVM_CPU')
-        rust_gen_target(d, thing, wd, features, cpu, arch)
+        rust_gen_target(d, thing, wd, features, cpu, arch, abi)
 }
 
 # Otherwise we'll depend on what we provide
@@ -28,11 +27,7 @@ INHIBIT_DEFAULT_RUST_DEPS = "1"
 # so it might make sense to take it's mapping. For now, though, we just mention
 # the bits we need explicitly.
 DEPENDS += "rust-llvm-native"
-DEPENDS += "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}compilerlibs virtual/libc"
 DEPENDS += "rust-native"
-
-PROVIDES = "virtual/${TARGET_PREFIX}rust"
-PN = "rust-cross-${TUNE_PKGARCH}-${TCLIBC}"
 
 # In the cross compilation case, rustc doesn't seem to get the rpath quite
 # right. It manages to include '../../lib/${TARGET_PREFIX}', but doesn't

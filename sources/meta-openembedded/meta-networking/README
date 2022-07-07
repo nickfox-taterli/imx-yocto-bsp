@@ -18,20 +18,22 @@ Dependencies
 This layer depends on:
 
 URI: git://git.openembedded.org/openembedded-core
-branch: honister
+branch: kirkstone
 
 For some recipes, the meta-oe layer is required:
 
 URI: git://git.openembedded.org/meta-openembedded
 subdirectory: meta-oe
-branch: honister
+branch: kirkstone
 
 URI: git://git.openembedded.org/meta-openembedded
 subdirectory: meta-python
-branch: honister
+branch: kirkstone
 
 Maintenance
 -----------
+Layer maintainers: Armin Kuster <akuster808@gmail.com>
+
 
 Please see the MAINTAINERS file for information on contacting the
 maintainers of this layer, as well as instructions for submitting patches. 

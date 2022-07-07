@@ -28,7 +28,7 @@ error form along with an explanation.
 .. note::
 
    -  At the end of each message, the name of the associated QA test (as
-      listed in the ":ref:`insane.bbclass <ref-classes-insane>`"
+      listed in the ":ref:`ref-classes-insane`"
       section) appears within square brackets.
 
    -  As mentioned, this list of error and warning messages is for QA
@@ -154,7 +154,16 @@ Errors and Warnings
    ``FILES:${PN}-dbg``. See :term:`FILES` for additional
    information on :term:`FILES`.
 
-    
+.. _qa-check-empty-dirs:
+
+-  ``<packagename> installs files in <path>, but it is expected to be empty [empty-dirs]``
+
+   The specified package is installing files into a directory that is
+   normally expected to be empty (such as ``/tmp``). These files may
+   be more appropriately installed to a different location, or
+   perhaps alternatively not installed at all, usually by updating the
+   ``do_install`` task/function.
+
 .. _qa-check-arch:
 
 -  ``Architecture did not match (<file_arch>, expected <machine_arch>) in <file> [arch]``
@@ -749,7 +758,7 @@ either raise a warning or an error message, using the
 variables, respectively. You can also disable checks within a particular
 recipe using :term:`INSANE_SKIP`. For information on
 how to work with the QA checks, see the
-":ref:`insane.bbclass <ref-classes-insane>`" section.
+":ref:`ref-classes-insane`" section.
 
 .. note::
 

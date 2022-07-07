@@ -30,14 +30,12 @@ IMAGE_FEATURES += " \
        bb.utils.contains('DISTRO_FEATURES',     'x11', 'x11-base x11-sato', \
                                                        '', d), d)} \
 "
-ERPC_COMPS ?= ""
-ERPC_COMPS:append:mx7ulp = "packagegroup-imx-erpc"
 
 V2X_PKGS = ""
-V2X_PKGS:mx8dxl = "packagegroup-imx-v2x"
+V2X_PKGS:mx8dxl-nxp-bsp = "packagegroup-imx-v2x"
 
 DOCKER ?= ""
-DOCKER:mx8 = "docker"
+DOCKER:mx8-nxp-bsp = "docker"
 
 G2D_SAMPLES          = ""
 G2D_SAMPLES:imxgpu2d = "imx-g2d-samples"

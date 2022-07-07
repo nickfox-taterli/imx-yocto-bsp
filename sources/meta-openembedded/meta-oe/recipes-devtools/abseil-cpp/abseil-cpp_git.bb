@@ -7,14 +7,13 @@ SECTION = "libs"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=df52c6edb7adc22e533b2bacc3bd3915"
 
-PV = "20210324.2+git${SRCPV}"
-SRCREV = "278e0a071885a22dcd2fd1b5576cc44757299343"
-BRANCH = "lts_2021_03_24"
+PV = "20211102.0+git${SRCPV}"
+SRCREV = "7c6608d0dbe43cf9bdf7f77787bc6bc89cc42f8b"
+BRANCH = "master"
 SRC_URI = "git://github.com/abseil/abseil-cpp;branch=${BRANCH};protocol=https \
            file://0001-absl-always-use-asm-sgidefs.h.patch             \
            file://0002-Remove-maes-option-from-cross-compilation.patch \
            file://abseil-ppc-fixes.patch \
-           file://0001-Export-of-internal-Abseil-changes.patch \
           "
 
 S = "${WORKDIR}/git"

@@ -1,6 +1,6 @@
 DESCRIPTION = "Different utilities from Android"
 SECTION = "console/utils"
-LICENSE = "Apache-2.0 & GPL-2.0 & BSD-2-Clause & BSD-3-Clause"
+LICENSE = "Apache-2.0 & GPL-2.0-only & BSD-2-Clause & BSD-3-Clause"
 LIC_FILES_CHKSUM = " \
     file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10 \
     file://${COMMON_LICENSE_DIR}/GPL-2.0-only;md5=801f80980d171dd6425610833a22dbe6 \
@@ -68,12 +68,12 @@ do_unpack_and_patch_debian() {
 addtask unpack_and_patch_debian after do_unpack before do_patch
 
 # http://errors.yoctoproject.org/Errors/Details/1debian881/
-ARM_INSTRUCTION_SET_armv4 = "arm"
-ARM_INSTRUCTION_SET_armv5 = "arm"
+ARM_INSTRUCTION_SET:armv4 = "arm"
+ARM_INSTRUCTION_SET:armv5 = "arm"
 
-COMPATIBLE_HOST_powerpc = "(null)"
-COMPATIBLE_HOST_powerpc64 = "(null)"
-COMPATIBLE_HOST_powerpc64le = "(null)"
+COMPATIBLE_HOST:powerpc = "(null)"
+COMPATIBLE_HOST:powerpc64 = "(null)"
+COMPATIBLE_HOST:powerpc64le = "(null)"
 
 inherit systemd clang
 
@@ -85,15 +85,15 @@ DEPENDS += "\
 SYSTEMD_SERVICE:${PN} = "android-tools-adbd.service"
 
 # Find libbsd headers during native builds
-CC:append_class-native = " -I${STAGING_INCDIR}"
-CC:append_class-nativesdk = " -I${STAGING_INCDIR}"
+CC:append:class-native = " -I${STAGING_INCDIR}"
+CC:append:class-nativesdk = " -I${STAGING_INCDIR}"
 
 PREREQUISITE_core = "libbase libsparse liblog libcutils"
 TOOLS_TO_BUILD = "libcrypto_utils libadb libziparchive fastboot adb img2simg simg2img libbacktrace"
 
 # Adb needs sys/capability.h, which is not available for native*
-TOOLS_class-native = "boringssl fastboot ext4_utils mkbootimg"
-TOOLS_class-nativesdk = "boringssl fastboot ext4_utils mkbootimg"
+TOOLS:class-native = "boringssl fastboot ext4_utils mkbootimg"
+TOOLS:class-nativesdk = "boringssl fastboot ext4_utils mkbootimg"
 
 do_compile() {
 
@@ -188,7 +188,7 @@ do_install() {
 
 PACKAGES += "${PN}-fstools"
 
-RDEPENDS_${BPN} = "${BPN}-conf p7zip"
+RDEPENDS:${BPN} = "${BPN}-conf p7zip"
 
 FILES:${PN}-fstools = "\
     ${bindir}/ext2simg \

@@ -244,19 +244,24 @@ an entire Linux distribution, including the toolchain, from source.
    .. tip::
 
       You can significantly speed up your build and guard against fetcher
-      failures by using mirrors. To use mirrors, add these lines to your
-      local.conf file in the Build directory::
+      failures by using :ref:`overview-manual/concepts:shared state cache`
+      mirrors and enabling :ref:`overview-manual/concepts:hash equivalence`.
+      This way, you can use pre-built artifacts rather than building them.
+      This is relevant only when your network and the server that you use
+      can download these artifacts faster than you would be able to build them.
 
-         SSTATE_MIRRORS = "\
-         file://.* http://sstate.yoctoproject.org/dev/PATH;downloadfilename=PATH \n \
-         file://.* http://sstate.yoctoproject.org/&YOCTO_DOC_VERSION_MINUS_ONE;/PATH;downloadfilename=PATH \n \
-         file://.* http://sstate.yoctoproject.org/&YOCTO_DOC_VERSION;/PATH;downloadfilename=PATH \n \
-         "
+      To use such mirrors, uncomment the below lines in your ``conf/local.conf``
+      file in the :term:`Build Directory`::
 
+         BB_SIGNATURE_HANDLER = "OEEquivHash"
+         BB_HASHSERVE = "auto"
+         BB_HASHSERVE_UPSTREAM = "typhoon.yocto.io:8687"
+         SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/&YOCTO_DOC_VERSION;/PATH;downloadfilename=PATH"
 
-      The previous examples showed how to add sstate paths for Yocto Project
-      &YOCTO_DOC_VERSION_MINUS_ONE;, &YOCTO_DOC_VERSION;, and a development
-      area. For a complete index of sstate locations, see :yocto_sstate:`/`.
+      The above settings assumed the use of Yocto Project &YOCTO_DOC_VERSION;.
+      If you are using the development version instead, set :term:`SSTATE_MIRRORS` as follows::
+
+         SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/dev/PATH;downloadfilename=PATH"
 
 #. **Start the Build:** Continue with the following command to build an OS
    image for the target, which is ``core-image-sato`` in this example:
@@ -419,12 +424,12 @@ information including the website, wiki pages, and user manuals:
    development documentation, and access to a rich Yocto Project
    Development Community into which you can tap.
 
--  **Developer Screencast:** The `Getting Started with the Yocto Project -
-   New Developer Screencast Tutorial <https://vimeo.com/36450321>`__
-   provides a 30-minute video created for users unfamiliar with the
-   Yocto Project but familiar with Linux build hosts. While this
-   screencast is somewhat dated, the introductory and fundamental
-   concepts are useful for the beginner.
+-  **Video Seminar:** The `Introduction to the Yocto Project and Bitbake, Part 1
+   <https://youtu.be/yuE7my3KOpo>`__ and
+   `Introduction to the Yocto Project and Bitbake, Part 2
+   <https://youtu.be/iZ05TTyzGHk>`__ videos offer a video seminar
+   introducing you to the most important aspects of developing a
+   custom embedded Linux distribution with the Yocto Project.
 
 -  **Yocto Project Overview and Concepts Manual:** The
    :doc:`/overview-manual/index` is a great

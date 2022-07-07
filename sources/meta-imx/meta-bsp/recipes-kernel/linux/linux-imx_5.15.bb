@@ -1,5 +1,5 @@
 # Copyright (C) 2013-2016 Freescale Semiconductor
-# Copyright 2017-2021 NXP
+# Copyright 2017-2022 NXP
 # Released under the MIT license (see COPYING.MIT for the terms)
 #
 # SPDX-License-Identifier: MIT
@@ -11,7 +11,7 @@ i.MX Family Reference Boards. It includes support for many IPs such as GPU, VPU 
 
 require recipes-kernel/linux/linux-imx.inc
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 
 DEPENDS += "lzop-native bc-native"
@@ -22,31 +22,31 @@ KERNEL_SRC ?= "git://source.codeaurora.org/external/imx/linux-imx.git;protocol=h
 KBRANCH = "${SRCBRANCH}"
 SRC_URI = "${KERNEL_SRC}"
 
-SRCREV = "c1084c2773fc1005ed140db625399d5334d94a28"
+SRCREV = "fa6c3168595c02bd9d5366fcc28c9e7304947a3d"
 
 # PV is defined in the base in linux-imx.inc file and uses the LINUX_VERSION definition
 # required by kernel-yocto.bbclass.
 #
 # LINUX_VERSION define should match to the kernel version referenced by SRC_URI and
 # should be updated once patchlevel is merged.
-LINUX_VERSION = "5.15.5"
+LINUX_VERSION = "5.15.32"
 
 KERNEL_CONFIG_COMMAND = "oe_runmake_call -C ${S} CC="${KERNEL_CC}" O=${B} olddefconfig"
 
 DEFAULT_PREFERENCE = "1"
 
 DO_CONFIG_V7_COPY = "no"
-DO_CONFIG_V7_COPY:mx6 = "yes"
-DO_CONFIG_V7_COPY:mx7 = "yes"
-DO_CONFIG_V7_COPY:mx8 = "no"
+DO_CONFIG_V7_COPY:mx6-nxp-bsp = "yes"
+DO_CONFIG_V7_COPY:mx7-nxp-bsp = "yes"
+DO_CONFIG_V7_COPY:mx8-nxp-bsp = "no"
 
 # Add setting for LF Mainline build
 IMX_KERNEL_CONFIG_AARCH32 = "imx_v7_defconfig"
 IMX_KERNEL_CONFIG_AARCH64 = "imx_v8_defconfig"
 KBUILD_DEFCONFIG ?= ""
-KBUILD_DEFCONFIG:mx6= "${IMX_KERNEL_CONFIG_AARCH32}"
-KBUILD_DEFCONFIG:mx7= "${IMX_KERNEL_CONFIG_AARCH32}"
-KBUILD_DEFCONFIG:mx8= "${IMX_KERNEL_CONFIG_AARCH64}"
+KBUILD_DEFCONFIG:mx6-nxp-bsp= "${IMX_KERNEL_CONFIG_AARCH32}"
+KBUILD_DEFCONFIG:mx7-nxp-bsp= "${IMX_KERNEL_CONFIG_AARCH32}"
+KBUILD_DEFCONFIG:mx8-nxp-bsp= "${IMX_KERNEL_CONFIG_AARCH64}"
 
 
 # Use a verbatim copy of the defconfig from the linux-imx repo.
@@ -67,7 +67,7 @@ do_copy_defconfig () {
 }
 
 DELTA_KERNEL_DEFCONFIG ?= ""
-#DELTA_KERNEL_DEFCONFIG:mx8 = "imx.config"
+#DELTA_KERNEL_DEFCONFIG:mx8-nxp-bsp = "imx.config"
 
 do_merge_delta_config[dirs] = "${B}"
 do_merge_delta_config[depends] += " \
@@ -92,4 +92,4 @@ addtask merge_delta_config before do_kernel_localversion after do_copy_defconfig
 do_kernel_configcheck[noexec] = "1"
 
 KERNEL_VERSION_SANITY_SKIP="1"
-COMPATIBLE_MACHINE = "(mx6|mx7|mx8)"
+COMPATIBLE_MACHINE = "(imx-nxp-bsp)"

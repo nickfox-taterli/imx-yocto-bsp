@@ -13,11 +13,11 @@ The meta-python layer depends on:
 
 	URI: git://git.openembedded.org/openembedded-core
 	layers: meta
-	branch: honister
+	branch: kirkstone
 
 	URI: git://git.openembedded.org/meta-openembedded
 	layers: meta-oe
-	branch: honister
+	branch: kirkstone
 
 Please follow the recommended setup procedures of your OE distribution.
 For Angstrom that is:
@@ -33,12 +33,12 @@ comments and patch review. It is subscriber only, so please register
 before posting.
 
 Send pull requests to openembedded-devel@lists.openembedded.org with
-'[meta-python][honister]' in the subject.
+'[meta-python][kirkstone]' in the subject.
 
 When sending single patches, please use something like:
-git send-email -M -1 --to=openembedded-devel@lists.openembedded.org --subject-prefix='meta-python][honister][PATCH'
+git send-email -M -1 --to=openembedded-devel@lists.openembedded.org --subject-prefix='meta-python][kirkstone][PATCH'
 
 Maintenance
 -------------------------
 
-Stable Branch Maintainer: Armin Kuster <akuster088@gmail.com>
+Layer maintainers: Armin Kuster <akuster808@gmail.com>

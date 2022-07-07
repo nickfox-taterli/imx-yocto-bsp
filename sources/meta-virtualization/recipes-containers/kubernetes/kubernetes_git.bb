@@ -5,24 +5,24 @@ applications across multiple hosts, providing basic mechanisms for deployment, \
 maintenance, and scaling of applications. \
 "
 
-PV = "v1.22.2+git${SRCREV_kubernetes}"
-SRCREV_kubernetes = "8b5a19147530eaac9476b0ab82980b4088bbc1b2"
+PV = "v1.23.6+git${SRCREV_kubernetes}"
+SRCREV_kubernetes = "fbcfa33018159c033aee77b0d5456df6771aa9b5"
 SRCREV_kubernetes-release = "7c1aa83dac555de6f05500911467b70aca4949f0"
 PE = "1"
 
 BBCLASSEXTEND = "devupstream:target"
 LIC_FILES_CHKSUM:class-devupstream = "file://src/import/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 DEFAULT_PREFERENCE:class-devupstream = "-1"
-SRC_URI:class-devupstream = "git://github.com/kubernetes/kubernetes.git;branch=master;name=kubernetes;protocol=https \
+SRC_URI:classedevupstream = "git://github.com/kubernetes/kubernetes.git;branch=master;name=kubernetes;protocol=https \
                              git://github.com/kubernetes/release;branch=master;name=kubernetes-release;destsuffix=git/release;protocol=https \
                             "
-SRCREV_kubernetes:class-devupstream = "f6331c74b673d3039240edc77cd66696bbefdd9c"
+SRCREV_kubernetes:class-devupstream = "d2f6eb6339de25cef04850b6d9be8335d52324cd"
 SRCREV_kubernetes-release:class-devupstream = "7c1aa83dac555de6f05500911467b70aca4949f0"
 PV:class-devupstream = "v1.23-alpha+git${SRCPV}"
 
 SRCREV_FORMAT ?= "kubernetes_release"
 
-SRC_URI = "git://github.com/kubernetes/kubernetes.git;branch=release-1.22;name=kubernetes;protocol=https \
+SRC_URI = "git://github.com/kubernetes/kubernetes.git;branch=release-1.23;name=kubernetes;protocol=https \
            git://github.com/kubernetes/release;branch=master;name=kubernetes-release;destsuffix=git/release;protocol=https"
 
 SRC_URI:append = " \
@@ -30,6 +30,9 @@ SRC_URI:append = " \
            file://0001-cross-don-t-build-tests-by-default.patch \
            file://0001-build-golang.sh-convert-remaining-go-calls-to-use.patch \
            file://0001-Makefile.generated_files-Fix-race-issue-for-installi.patch \
+           file://cni-containerd-net.conflist \
+           file://k8s-init \
+           file://99-kubernetes.conf \
           "
 
 DEPENDS += "rsync-native \
@@ -45,6 +48,7 @@ GO_IMPORT = "import"
 inherit systemd
 inherit go
 inherit goarch
+inherit cni_networking
 
 COMPATIBLE_HOST = '(x86_64.*|arm.*|aarch64.*)-linux'
 
@@ -98,9 +102,19 @@ do_install() {
 
     install -m 0644 ${WORKDIR}/git/release/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service ${D}${systemd_unitdir}/system/
     install -m 0644 ${WORKDIR}/git/release/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf  ${D}${systemd_unitdir}/system/kubelet.service.d/
+
+    if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
+	install -d "${D}${BIN_PREFIX}/bin"
+	install -m 755 "${WORKDIR}/k8s-init" "${D}${BIN_PREFIX}/bin"
+
+	install -d ${D}${sysconfdir}/sysctl.d
+	install -m 0644 "${WORKDIR}/99-kubernetes.conf" "${D}${sysconfdir}/sysctl.d"
+    fi
 }
 
-PACKAGES =+ "kubeadm kubectl kubelet kube-proxy ${PN}-misc"
+CNI_NETWORKING_FILES ?= "${WORKDIR}/cni-containerd-net.conflist"
+
+PACKAGES =+ "kubeadm kubectl kubelet kube-proxy ${PN}-misc ${PN}-host"
 
 ALLOW_EMPTY:${PN} = "1"
 INSANE_SKIP:${PN} += "ldflags already-stripped"
@@ -111,9 +125,9 @@ INSANE_SKIP:${PN}-misc += "ldflags already-stripped"
 RDEPENDS:${PN} += "kubeadm \
                    kubectl \
                    kubelet \
-                   cni"
+                   kubernetes-cni"
 
-RDEPENDS:kubeadm = "kubelet kubectl"
+RDEPENDS:kubeadm = "kubelet kubectl cri-tools conntrack-tools"
 FILES:kubeadm = "${bindir}/kubeadm ${systemd_unitdir}/system/kubelet.service.d/*"
 
 RDEPENDS:kubelet = "iptables socat util-linux ethtool iproute2 ebtables iproute2-tc"
@@ -125,7 +139,27 @@ SYSTEMD_AUTO_ENABLE:kubelet = "enable"
 
 FILES:kubectl = "${bindir}/kubectl"
 FILES:kube-proxy = "${bindir}/kube-proxy"
-FILES:${PN}-misc = "${bindir}"
+FILES:${PN}-misc = "${bindir} ${sysconfdir}/sysctl.d"
 
+ALLOW_EMPTY:${PN}-host = "1"
+FILE:${PN}-host = "${BIN_PREFIX}/bin/k8s-init"
+RDEPENDS:${PN}-host = "${PN}"
+
+RRECOMMENDS:${PN} = "\
+                     kernel-module-xt-addrtype \
+                     kernel-module-xt-nat \
+                     kernel-module-xt-multiport \
+                     kernel-module-xt-conntrack \
+                     kernel-module-xt-comment \
+                     kernel-module-xt-mark \
+                     kernel-module-xt-connmark \
+                     kernel-module-vxlan \
+                     kernel-module-xt-masquerade \
+                     kernel-module-xt-statistic \
+                     kernel-module-xt-physdev \
+                     kernel-module-xt-nflog \
+                     kernel-module-xt-limit \
+                     kernel-module-nfnetlink-log \
+                     "
 
 deltask compile_ptest_base
